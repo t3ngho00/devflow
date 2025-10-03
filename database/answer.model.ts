@@ -21,5 +21,5 @@ const AnswerSchema = new Schema<IAnswer>(
   { timestamps: true }
 );
 
-const AnswerModel = models.Answer || model<IAnswer>("Answer", AnswerSchema);
-export default AnswerModel;
+const Answer = models.Answer || model<IAnswer>("Answer", AnswerSchema);
+export default Answer;
