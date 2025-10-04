@@ -1,17 +1,18 @@
-import { Schema, model, Types, models } from "mongoose";
+import { Schema, models, model, Document, Types } from "mongoose";
 
 export interface IVote {
   author: Types.ObjectId;
-  id: Types.ObjectId;
+  actionId: Types.ObjectId;
   type: "Question" | "Answer";
   voteType: "upvote" | "downvote";
-  timestamp: Date;
 }
+
+export interface IVoteDoc extends IVote, Document {}
 
 const VoteSchema = new Schema<IVote>(
   {
     author: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    id: {
+    actionId: {
       type: Schema.Types.ObjectId,
       required: true,
       refPath: "type",
@@ -26,5 +27,5 @@ const VoteSchema = new Schema<IVote>(
   { timestamps: true }
 );
 
-const Vote = models.Vote || model<IVote>("Vote", VoteSchema);
+const Vote = models?.Vote || model<IVote>("Vote", VoteSchema);
 export default Vote;
