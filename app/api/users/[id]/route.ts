@@ -54,7 +54,7 @@ export async function PUT(
     await dbConnect();
 
     const body = await request.json();
-    const validatedData = UserSchema.partial().parse(body);
+    const validatedData = UserSchema.partial().safeParse(body);
 
     const updatedUser = await User.findByIdAndUpdate(id, validatedData, {
       new: true,
