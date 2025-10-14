@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import Account from "@/database/account.model";
-import User from "@/database/user.model";
 import handleError from "@/lib/handlers/error";
 import dbConnect from "@/lib/mongoose";
 import { AccountSchema } from "@/lib/validation";
@@ -28,7 +27,7 @@ export async function POST(request: Request) {
 
     const validatedData = AccountSchema.parse(body);
 
-    const existingAccount = await User.findOne({
+    const existingAccount = await Account.findOne({
       provider: validatedData.provider,
       providerAccountId: validatedData.providerAccountId,
     });

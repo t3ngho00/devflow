@@ -5,6 +5,7 @@ import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/ROUTES";
+import { api } from "@/lib/api";
 
 const questions = [
   {
@@ -47,12 +48,15 @@ const questions = [
   },
 ];
 
-
 interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>;
 }
 
 export default async function Home({ searchParams }: SearchParams) {
+  // test users fetching
+  const users = await api.users.getAll();
+  console.log(users);
+
   const { query = "", filter = "" } = await searchParams;
   const searchQuery = query ?? "";
   const filteredQuestions = questions.filter((question) => {
