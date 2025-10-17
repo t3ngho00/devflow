@@ -52,4 +52,16 @@ export const api = {
         method: "DELETE",
       }),
   },
+  auth: {
+    oAuthSignIn: ({
+      user,
+      provider,
+      providerAccountId,
+    }: SignInWithOAuthParams) => {
+      return fetchHandler(`${API_BASE_URL}/auth/signin-with-oauth`, {
+        method: "POST",
+        body: JSON.stringify({ user, provider, providerAccountId }),
+      });
+    },
+  },
 };
