@@ -29,7 +29,7 @@ export const api = {
         method: "DELETE",
       }),
   },
-  account: {
+  accounts: {
     getAll: () => fetchHandler(`${API_BASE_URL}/accounts`),
     getById: (id: string) => fetchHandler(`${API_BASE_URL}/accounts/${id}`),
     getByProvider: (providerAccountId: string) =>
