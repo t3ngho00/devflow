@@ -41,7 +41,7 @@ const QuestionCard = ({
           imgUrl={author.image}
           alt={author.name}
           value={author.name}
-          title={`• asked ${formatDistance(new Date(), createdAt)}`}
+          title={`• asked ${formatDistance(new Date(), createdAt)} ago`}
           href={ROUTES.PROFILE(author._id)}
           textStyles="body-medium text-dark400_light700"
           isAuthor
