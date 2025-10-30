@@ -5,7 +5,6 @@ import handleError from "@/lib/handlers/error";
 import { ValidationError, NotFoundError } from "@/lib/http-errors";
 import dbConnect from "@/lib/mongoose";
 import { AccountSchema } from "@/lib/validation";
-import { APIErrorResponse } from "@/types/global";
 
 export async function POST(request: Request) {
   const { providerAccountId } = await request.json();

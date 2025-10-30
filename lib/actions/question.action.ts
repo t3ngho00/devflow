@@ -1,3 +1,4 @@
+"use server"
 import mongoose from "mongoose";
 
 import Question from "@/database/question.model";
@@ -9,7 +10,11 @@ import { AskQuestionSchema } from "../validation";
 
 export async function createQuestion(
   params: CreateQuestionParams
-): Promise<ActionResponse> {
+): Promise<ActionResponse<Question>> {
+  console.log("Title:", params.title);
+  console.log("Content:", params.content);
+  console.log("Tags:", params.tags);
+
   const validationResult = await action({
     params,
     schema: AskQuestionSchema,
@@ -37,7 +42,7 @@ export async function createQuestion(
     // create array to contain tagIds and tagQuestionDocuments
     const tagIds: mongoose.Types.ObjectId[] = [];
     const tagQuestionDocuments = [];
-    
+
     // loop over the array of tagIds and find the ids of the tags
     for (const tag of tags) {
       const existingTag = await Tag.findOneAndUpdate(
