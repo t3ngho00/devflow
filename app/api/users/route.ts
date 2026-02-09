@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import z from "zod";
 
 import User from "@/database/user.model";
 import handleError from "@/lib/handlers/error";
@@ -25,7 +26,12 @@ export async function POST(request: Request) {
     const validatedData = UserSchema.safeParse(body);
 
     if (!validatedData.success) {
-      throw new ValidationError(validatedData.error.flatten().fieldErrors);
+      throw new ValidationError(
+        z.treeifyError(validatedData.error) as unknown as Record<
+          string,
+          string[]
+        >
+      );
     }
 
     const { username, email } = validatedData.data;

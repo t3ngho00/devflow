@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import slugify from "slugify";
+import z from "zod";
 
 import Account from "@/database/account.model";
 import User from "@/database/user.model";
@@ -25,7 +26,12 @@ export async function POST(request: Request) {
     });
 
     if (!validatedData.success)
-      throw new ValidationError(validatedData.error.flatten().fieldErrors);
+      throw new ValidationError(
+        z.treeifyError(validatedData.error) as unknown as Record<
+          string,
+          string[]
+        >
+      );
 
     const { name, username, email, image } = user;
 

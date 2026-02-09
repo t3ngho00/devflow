@@ -1,7 +1,7 @@
 "use server";
 
 import { Session } from "next-auth";
-import { ZodError, ZodSchema } from "zod";
+import z, { ZodError, ZodSchema } from "zod";
 
 import { auth } from "@/auth";
 
@@ -30,7 +30,7 @@ async function action<T>({
     } catch (error) {
       if (error instanceof ZodError) {
         return new ValidationError(
-          error.flatten().fieldErrors as Record<string, string[]>
+          z.treeifyError(error) as unknown as Record<string, string[]>
         );
       } else {
         return new Error("Schema validation failed");
