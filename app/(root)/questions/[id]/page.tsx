@@ -10,6 +10,8 @@ import ROUTES from "@/constants/ROUTES";
 import { getQuestion } from "@/lib/actions/question.action";
 import { formatNumber } from "@/lib/utils";
 
+import Views from "./Views";
+
 const QuestionDetails = async ({ params }: RouteParams) => {
   const { id: questionId } = await params;
   const { success, data: question } = await getQuestion({ questionId });
@@ -19,6 +21,7 @@ const QuestionDetails = async ({ params }: RouteParams) => {
 
   return (
     <>
+    <Views questionId={questionId}/>
       <div className="flex-start w-full flex-col">
         <div className="flex w-full flex-col-reverse justify-between">
           <div className="flex items-center justify-start gap-1">
