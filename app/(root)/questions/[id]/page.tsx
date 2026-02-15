@@ -1,27 +1,29 @@
 import { formatDistance } from "date-fns";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 
 import TagCard from "@/components/cards/TagCard";
 import Preview from "@/components/editor/Preview";
 import Metric from "@/components/Metric";
 import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/ROUTES";
-import { getQuestion } from "@/lib/actions/question.action";
+import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { formatNumber } from "@/lib/utils";
-
-import Views from "./Views";
 
 const QuestionDetails = async ({ params }: RouteParams) => {
   const { id: questionId } = await params;
   const { success, data: question } = await getQuestion({ questionId });
 
+  after(async () => {
+    await incrementViews({ questionId });
+  });
+  
   if (!success || !question) redirect("/404");
   const { author, createdAt, answers, views, tags, content, title } = question;
 
   return (
     <>
-    <Views questionId={questionId}/>
       <div className="flex-start w-full flex-col">
         <div className="flex w-full flex-col-reverse justify-between">
           <div className="flex items-center justify-start gap-1">
