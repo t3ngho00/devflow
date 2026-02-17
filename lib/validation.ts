@@ -73,7 +73,7 @@ export const UserSchema = z.object({
 export const AccountSchema = z.object({
   userId: z.string().min(1, { message: "User ID is required." }),
   name: z.string().min(1, { message: "Name is required." }),
-  image: z.string().url({ message: "Please provide a valid URL." }).optional(),
+  image: z.url({ message: "Please provide a valid URL." }).optional(),
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters long." })
@@ -123,13 +123,17 @@ export const PaginatedSearchParamsSchema = z.object({
 });
 
 export const GetTagQuestionsSchema = PaginatedSearchParamsSchema.extend({
-  tagId: z.string().min(1, "Tag ID is required"),
+  tagId: z.string().min(1, { message: "Tag ID is required" }),
 });
 
 export const IncrementViewsSchema = z.object({
-  questionId: z.string().min(1, { message: "Question ID is required." }),
+  questionId: z.string().min(1,  { message: "Question ID is required" }),
 });
 
 export const AnswerSchema = z.object({
-  content: z.string().min(100, "Answer should have more than 100 characters"),
+  content: z.string().min(100, { message: "Answer should have more than 100 characters" }),
+});
+
+export const AnswerServerSchema = AnswerSchema.extend({
+  questionId: z.string().min(1, { message: "Question ID is required" }),
 });

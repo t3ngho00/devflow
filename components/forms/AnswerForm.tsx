@@ -1,24 +1,33 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, MDXEditorMethods } from "@mdxeditor/editor";
+import { MDXEditorMethods } from "@mdxeditor/editor";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useRef, useState } from "react";
-import { Form, useForm } from "react-hook-form";
+import { useRef, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
+import { createAnswer } from "@/lib/actions/answer.action";
 import { AnswerSchema } from "@/lib/validation";
 
-import { FormField, FormItem, FormControl, FormMessage } from "../ui/form";
+import { Button } from "../ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "../ui/form";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
 
-const AnswerForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const AnswerForm = ({ questionId }: { questionId: string }) => {
+  const [isSubmitting, startSubmittingTransition] = useTransition();
   const [isAISubmitting, setIsAISubmitting] = useState(false);
 
   const editorRef = useRef<MDXEditorMethods>(null);
@@ -31,7 +40,20 @@ const AnswerForm = () => {
   });
 
   const handleSubmit = async (values: z.infer<typeof AnswerSchema>) => {
-    console.log(values);
+    startSubmittingTransition(async () => {
+      const result = await createAnswer({
+        questionId,
+        content: values.content,
+      });
+
+      if (result.success) {
+        form.reset();
+
+        toast.success("Your answer has been posted successfully");
+      } else {
+        toast.error(result.error?.message);
+      }
+    });
   };
 
   return (
