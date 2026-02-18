@@ -9,12 +9,18 @@ import AnswerForm from "@/components/forms/AnswerForm";
 import Metric from "@/components/Metric";
 import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/ROUTES";
+import { getAnswers } from "@/lib/actions/answer.action";
 import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { formatNumber } from "@/lib/utils";
 
 const QuestionDetails = async ({ params }: RouteParams) => {
   const { id: questionId } = await params;
   const { success, data: question } = await getQuestion({ questionId });
+  const {
+    success: areAnswersLoaded,
+    data: answersResult,
+    error: answersError,
+  } = await getAnswers({ questionId });
 
   after(async () => {
     await incrementViews({ questionId });

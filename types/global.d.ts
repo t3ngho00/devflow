@@ -21,6 +21,13 @@ interface Question {
   createdAt: Date;
 }
 
+interface Answer {
+  _id: string;
+  content: string;
+  author: Author;
+  createdAt: Date;
+}
+
 type ActionResponse<T = null> = {
   success: boolean;
   data?: T;
@@ -43,9 +50,9 @@ interface RouteParams {
 }
 
 interface PaginatedSearchParams {
-  page?: number,
-  pageSize?: number,
-  query?: string,
-  filter?: string,
-  sort?: string
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  filter?: string;
+  sort?: string;
 }
