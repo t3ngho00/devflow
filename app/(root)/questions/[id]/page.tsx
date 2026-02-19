@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 
+import AnswersSection from "@/components/answers/AnswersSection";
 import TagCard from "@/components/cards/TagCard";
 import Preview from "@/components/editor/Preview";
 import AnswerForm from "@/components/forms/AnswerForm";
@@ -93,6 +94,13 @@ const QuestionDetails = async ({ params }: RouteParams) => {
           />
         ))}
       </div>
+
+      <AnswersSection
+        data={answersResult?.answers}
+        error={answersError}
+        success={areAnswersLoaded}
+        totalAnswers={answersResult?.totalAnswers || 0}
+      />
 
       <section className="my-5">
         <AnswerForm questionId={question._id} />
