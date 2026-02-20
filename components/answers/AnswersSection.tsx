@@ -1,5 +1,6 @@
 import { EMPTY_ANSWERS } from "@/constants/states";
 
+import AnswerCard from "../cards/AnswerCard";
 import DataRenderer from "../DataRenderer";
 
 interface Props extends ActionResponse<Answer[]> {
@@ -22,7 +23,15 @@ const AnswersSection = ({ data, success, error, totalAnswers }: Props) => {
         error={error}
         empty={EMPTY_ANSWERS}
         render={(answers) =>
-          answers.map((answer) => <p key={answer._id}>{answer.content}</p>)
+          answers.map((answer) => (
+            <AnswerCard
+              key={answer._id}
+              _id={answer._id}
+              author={answer.author}
+              content={answer.content}
+              createdAt={answer.createdAt}
+            />
+          ))
         }
       />
     </div>
