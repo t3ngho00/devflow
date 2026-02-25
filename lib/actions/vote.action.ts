@@ -1,7 +1,9 @@
 "use server";
 
 import mongoose, { ClientSession } from "mongoose";
+import { revalidatePath } from "next/cache";
 
+import ROUTES from "@/constants/ROUTES";
 import { Answer, Question, Vote } from "@/database";
 
 import action from "../handlers/action";
@@ -84,13 +86,24 @@ export async function createVote(
           { targetId, targetType, voteType, change: -1 },
           session
         );
-      } else {
-        // If the user has already voted with a different voteType, update the vote
+      } 
+      // If the user has already voted with the *different voteType, 
+      else {
+        const previousVoteType = existingVote.voteType;
+
         await Vote.findByIdAndUpdate(
           existingVote._id,
           { voteType },
           { new: true, session }
         );
+
+        // remove old vote
+        await updateVoteCount(
+          { targetId, targetType, voteType: previousVoteType, change: -1 },
+          session
+        );
+
+        // add new vote
         await updateVoteCount(
           { targetId, targetType, voteType, change: 1 },
           session
@@ -98,9 +111,19 @@ export async function createVote(
       }
     } else {
       // If the user has not voted yet, create a new vote
-      await Vote.create([{ targetId, targetType, voteType, change: 1 }], {
-        session,
-      });
+      await Vote.create(
+        [
+          {
+            author: userId,
+            actionId: targetId,
+            actionType: targetType,
+            voteType,
+          },
+        ],
+        {
+          session,
+        }
+      );
       await updateVoteCount(
         { targetId, targetType, voteType, change: 1 },
         session
@@ -109,6 +132,7 @@ export async function createVote(
 
     await session.commitTransaction();
     session.endSession();
+    revalidatePath(ROUTES.QUESTION(targetId));
 
     return { success: true };
   } catch (error) {

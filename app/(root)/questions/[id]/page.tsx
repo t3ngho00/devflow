@@ -2,6 +2,7 @@ import { formatDistance } from "date-fns";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { Suspense } from "react";
 
 import AnswersSection from "@/components/answers/AnswersSection";
 import TagCard from "@/components/cards/TagCard";
@@ -13,6 +14,7 @@ import Votes from "@/components/votes/Votes";
 import ROUTES from "@/constants/ROUTES";
 import { getAnswers } from "@/lib/actions/answer.action";
 import { getQuestion, incrementViews } from "@/lib/actions/question.action";
+import { hasVoted } from "@/lib/actions/vote.action";
 import { formatNumber } from "@/lib/utils";
 
 const QuestionDetails = async ({ params }: RouteParams) => {
@@ -30,6 +32,11 @@ const QuestionDetails = async ({ params }: RouteParams) => {
 
   if (!success || !question) redirect("/404");
   const { author, createdAt, answers, views, tags, content, title } = question;
+
+  const hasVotedPromise = hasVoted({
+    targetId: questionId,
+    targetType: "question",
+  });
 
   return (
     <>
@@ -50,12 +57,15 @@ const QuestionDetails = async ({ params }: RouteParams) => {
           </div>
 
           <div className="flex justify-end">
-            <Votes
-              upvotes={question.upvotes}
-              hasupVoted={true}
-              downvotes={question.downvotes}
-              hasdownVoted={false}
-            />
+            <Suspense>
+              <Votes
+                upvotes={question.upvotes}
+                downvotes={question.downvotes}
+                hasVotedPromise={hasVotedPromise}
+                targetId={questionId}
+                targetType="question"
+              />
+            </Suspense>
           </div>
         </div>
 
