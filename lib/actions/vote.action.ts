@@ -66,7 +66,7 @@ export async function createVote(
   const { targetId, targetType, voteType } = validationResult.params!;
   const userId = validationResult.session?.user?.id;
 
-  if (!userId) handleError(new Error("Unauthorized")) as ErrorResponse;
+  if (!userId) return handleError(new Error("Unauthorized")) as ErrorResponse;
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -86,11 +86,9 @@ export async function createVote(
           { targetId, targetType, voteType, change: -1 },
           session
         );
-      } 
-      // If the user has already voted with the *different voteType, 
+      }
+      // If the user has already voted with the *different voteType,
       else {
-        const previousVoteType = existingVote.voteType;
-
         await Vote.findByIdAndUpdate(
           existingVote._id,
           { voteType },
@@ -99,7 +97,7 @@ export async function createVote(
 
         // remove old vote
         await updateVoteCount(
-          { targetId, targetType, voteType: previousVoteType, change: -1 },
+          { targetId, targetType, voteType: existingVote.voteType, change: -1 },
           session
         );
 
