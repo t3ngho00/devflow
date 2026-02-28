@@ -14,13 +14,13 @@ interface SearchParams {
 }
 
 export default async function Home({ searchParams }: SearchParams) {
-  const { page, pageSize, query, filter } = await searchParams;
+  const { page, pageSize, query, sort } = await searchParams;
 
   const { success, data, error } = await getQuestions({
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 10,
     query: query || "",
-    filter: filter || "",
+    sort: sort || "",
   });
 
   const { questions } = data || {};

@@ -56,6 +56,17 @@ interface PaginatedSearchParams {
   page?: number;
   pageSize?: number;
   query?: string;
-  filter?: string;
   sort?: string;
+}
+
+interface User {
+  _id: string;
+  name: string;
+  username: string;
+  email: string;
+  bio?: string;
+  image?: string;
+  location?: string;
+  portfolio?: string;
+  reputation?: number;
 }

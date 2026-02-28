@@ -254,15 +254,15 @@ export async function getQuestions(
   }
 
   // basic page options
-  const { page = 1, pageSize = 10, query, filter } = params;
+  const { page = 1, pageSize = 10, query, sort } = params;
   const skip = (Number(page) - 1) * Number(pageSize);
   const limit = Number(pageSize);
 
   // filter
   const filterQuery: FilterQuery<typeof Question> = {};
 
-  // skipping the recommended filter for now, will implement later when we track users
-  if (filter === "recommended") {
+  // skipping the recommended sort for now, will implement later when we track users
+  if (sort === "recommended") {
     return { success: true, data: { questions: [], isNext: false } };
   }
 
@@ -277,7 +277,7 @@ export async function getQuestions(
   // sort
   let sortCriteria = {};
 
-  switch (filter) {
+  switch (sort) {
     case "newest":
       sortCriteria = { createdAt: -1 };
       break;

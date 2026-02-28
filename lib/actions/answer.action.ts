@@ -77,12 +77,12 @@ export async function getAnswers(params: GetAnswersParams): Promise<
   if (validationResult instanceof Error)
     return handleError(validationResult) as ErrorResponse;
 
-  const { questionId, page = 1, pageSize = 10, filter } = params;
+  const { questionId, page = 1, pageSize = 10, sort } = params;
   const skip = (Number(page) - 1) * pageSize;
   const limit = Number(pageSize);
 
   let sortCriteria = {};
-  switch (filter) {
+  switch (sort) {
     case "lastest":
       sortCriteria = { createdAt: -1 };
       break;

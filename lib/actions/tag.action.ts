@@ -21,7 +21,7 @@ export const getTags = async (
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const { page = 1, pageSize = 10, query, filter } = params;
+  const { page = 1, pageSize = 10, query, sort } = params;
 
   const skip = (Number(page) - 1) * pageSize;
   const limit = Number(pageSize);
@@ -34,7 +34,7 @@ export const getTags = async (
 
   let sortCriteria = {};
 
-  switch (filter) {
+  switch (sort) {
     case "popular":
       sortCriteria = { questions: -1 };
       break;

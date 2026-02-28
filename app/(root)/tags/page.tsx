@@ -5,12 +5,12 @@ import { EMPTY_TAGS } from "@/constants/states";
 import { getTags } from "@/lib/actions/tag.action";
 
 export default async function TagsPage({ searchParams }: RouteParams) {
-  const { page, pageSize, query, filter } = await searchParams;
+  const { page, pageSize, query, sort } = await searchParams;
   const { data, success, error } = await getTags({
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 10,
     query,
-    filter,
+    sort,
   });
 
   const { tags } = data || {};
