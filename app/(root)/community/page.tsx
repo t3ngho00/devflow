@@ -1,3 +1,4 @@
+import UserCard from "@/components/cards/UserCard";
 import DataRenderer from "@/components/DataRenderer";
 import LocalSearch from "@/components/search/LocalSearch";
 import { EMPTY_USERS } from "@/constants/states";
@@ -33,7 +34,7 @@ export default async function CommunityPage({ searchParams }: RouteParams) {
         render={(users) => (
           <div className="mt-12 flex flex-wrap gap-5">
             {users.map((user) => (
-              <p key={user._id}>{user.email}</p>
+              <UserCard key={user._id} {...user} />
             ))}
           </div>
         )}

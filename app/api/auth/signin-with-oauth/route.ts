@@ -44,10 +44,10 @@ export async function POST(request: Request) {
     let existingUser = await User.findOne({ email }).session(session);
 
     if (!existingUser) {
-      [existingUser] = await User.create([
+      [existingUser] = await User.create(
         [{ name, username: slugifiedUserName, email, image }],
-        { session },
-      ]);
+        { session }
+      );
     } else {
       const updatedData: { name?: string; image?: string } = {};
 

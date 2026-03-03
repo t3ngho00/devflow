@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 
 import ROUTES from "@/constants/ROUTES";
+import { cn } from "@/lib/utils";
 
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
@@ -14,8 +15,16 @@ interface Props {
   fallbackClassName?: string;
 }
 
-const UserAvatar = ({ id, name, imageUrl, className = "h-9 w-9" }: Props) => {
-  const initials = name
+const UserAvatar = ({
+  id,
+  name,
+  imageUrl,
+  className = "h-9 w-9",
+  fallbackClassName,
+}: Props) => {
+  const displayName = name?.trim() || "User";
+
+  const initials = displayName
     .split(" ")
     .map((word: string) => word[0])
     .join("")
@@ -24,18 +33,22 @@ const UserAvatar = ({ id, name, imageUrl, className = "h-9 w-9" }: Props) => {
 
   return (
     <Link href={ROUTES.PROFILE(id)}>
-      <Avatar className={className}>
+      <Avatar className={cn("relative", className)}>
         {imageUrl ? (
           <Image
             src={imageUrl}
-            alt={name}
+            alt={displayName}
             className="object-cover"
-            width={36}
-            height={36}
+            fill
             quality={100}
           />
         ) : (
-          <AvatarFallback className="primary-gradient font-space-grotesk font-bold tracking-wider text-white">
+          <AvatarFallback
+            className={cn(
+              "primary-gradient font-space-grotesk font-bold tracking-wider text-white",
+              fallbackClassName
+            )}
+          >
             {initials}
           </AvatarFallback>
         )}

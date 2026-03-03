@@ -53,13 +53,17 @@ export async function getUsers(
     const totalUsers = await User.countDocuments(filterQuery);
 
     const users = await User.find(filterQuery)
+      .lean()
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit);
 
     const isNext = totalUsers > skip + users.length;
 
-    return { success: true, data: { users, isNext } };
+    return {
+      success: true,
+      data: { users: JSON.parse(JSON.stringify(users)), isNext },
+    };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
