@@ -84,7 +84,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         username:
           account.provider === "github"
             ? (profile?.login as string)
-            : (user.name?.toLowerCase() as string),
+            : user.email!.split("@")[0],
       };
 
       const { success } = (await api.auth.oAuthSignIn({
