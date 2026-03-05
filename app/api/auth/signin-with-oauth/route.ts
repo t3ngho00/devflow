@@ -68,9 +68,17 @@ export async function POST(request: Request) {
     }).session(session);
 
     if (!existingAccount) {
-      await Account.create([
-        { userId: existingUser._id, name, image, provider, providerAccountId }],
-        { session },
+      await Account.create(
+        [
+          {
+            userId: existingUser._id,
+            name,
+            image,
+            provider,
+            providerAccountId,
+          },
+        ],
+        { session }
       );
     }
 

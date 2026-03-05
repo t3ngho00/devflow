@@ -6,6 +6,7 @@ import ROUTES from "@/constants/ROUTES";
 
 import TagCard from "./TagCard";
 import Metric from "../Metric";
+import UserAvatar from "../UserAvatar";
 
 interface Props {
   question: Question;
@@ -14,12 +15,14 @@ interface Props {
 const QuestionCard = ({
   question: { _id, title, tags, author, createdAt, upvotes, answers, views },
 }: Props) => {
+  const timeAgo = formatDistance(new Date(), createdAt);
+
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
       <div className="flex flex-col-reverse items-start justify-between gap-5 sm:flex-row">
         <div>
           <span className="subtle-regular text-dark400_light700 line-clamp-1 flex sm:hidden">
-            {formatDistance(new Date(), createdAt)}
+            {timeAgo}
           </span>
 
           <Link href={ROUTES.QUESTION(_id)}>
@@ -37,15 +40,23 @@ const QuestionCard = ({
       </div>
 
       <div className="flex-between mt-6 w-full flex-wrap gap-3">
-        <Metric
-          imgUrl={author.image}
-          alt={author.name}
-          value={author.name}
-          title={`• asked ${formatDistance(new Date(), createdAt)} ago`}
-          href={ROUTES.PROFILE(author._id)}
-          textStyles="body-medium text-dark400_light700"
-          isAuthor
-        />
+        <div className="flex items-center gap-1">
+          <UserAvatar
+            id={author._id}
+            name={author.name}
+            imageUrl={author.image}
+            className="size-4 rounded-full object-cover"
+            fallbackClassName="text-[8px]"
+          />
+          <Link href={ROUTES.PROFILE(author._id)}>
+            <p className="body-medium text-dark400_light700 flex items-center gap-1 flex-wrap">
+              {author.name}
+              <span className="small-regular max-sm:hidden">
+                • asked {timeAgo} ago
+              </span>
+            </p>
+          </Link>
+        </div>
 
         <div className="flex items-center gap-3 max-sm:flex-wrap max-sm:justify-start">
           <Metric

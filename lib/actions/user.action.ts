@@ -42,7 +42,7 @@ export async function getUsers(
       sortCriteria = { createdAt: 1 };
       break;
     case "popular":
-      sortCriteria = { reupation: -1 };
+      sortCriteria = { reputation: -1 };
       break;
     default:
       sortCriteria = { createdAt: -1 };
