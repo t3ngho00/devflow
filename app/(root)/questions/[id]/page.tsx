@@ -14,6 +14,7 @@ import UserAvatar from "@/components/UserAvatar";
 import Votes from "@/components/votes/Votes";
 import ROUTES from "@/constants/ROUTES";
 import { getAnswers } from "@/lib/actions/answer.action";
+import { hasSavedQuestion } from "@/lib/actions/collection.action";
 import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { hasVoted } from "@/lib/actions/vote.action";
 import { formatNumber } from "@/lib/utils";
@@ -38,6 +39,8 @@ const QuestionDetails = async ({ params }: RouteParams) => {
     targetId: questionId,
     targetType: "question",
   });
+
+  const hasSavedQuestionPromise = hasSavedQuestion({ questionId });
 
   return (
     <>
@@ -70,7 +73,10 @@ const QuestionDetails = async ({ params }: RouteParams) => {
             </Suspense>
 
             <Suspense>
-              <SaveQuestion questionId={question._id} />
+              <SaveQuestion
+                questionId={question._id}
+                hasSavedQuestionPromise={hasSavedQuestionPromise}
+              />
             </Suspense>
           </div>
         </div>
