@@ -3,7 +3,6 @@
 import mongoose, { PipelineStage } from "mongoose";
 import { revalidatePath } from "next/cache";
 
-import QuestionDetails from "@/app/(root)/questions/[id]/page";
 import ROUTES from "@/constants/ROUTES";
 import { Collection, Question } from "@/database";
 
@@ -116,16 +115,24 @@ export async function getSavedQuestion(
   };
 
   try {
-    const pipeline: PipelineStage[] = [
-      // Step 1: Match the author (filter by userId)
+    const filterStages: PipelineStage[] = [
       {
         $match: {
           author: new mongoose.Types.ObjectId(userId),
         },
       },
 
-      // Step 2: If a query is provided, filter the questions based on title/content
-      // Filters the questions themselves before doing the lookup
+      {
+        $lookup: {
+          from: "questions",
+          localField: "question",
+          foreignField: "_id",
+          as: "question",
+        },
+      },
+
+      { $unwind: "$question" },
+
       ...(query
         ? [
             {
@@ -139,20 +146,6 @@ export async function getSavedQuestion(
           ]
         : []),
 
-      // Step 3: Lookup `question` data from the `questions` collection
-      {
-        $lookup: {
-          from: "questions",
-          localField: "question",
-          foreignField: "_id",
-          as: "question",
-        },
-      },
-
-      // Step 4: Unwind the `question` field to flatten the array (if it is an array)
-      { $unwind: "$question" },
-
-      // Step 5: Lookup the `author` data from the `users` collection for the question's author
       {
         $lookup: {
           from: "users",
@@ -163,7 +156,6 @@ export async function getSavedQuestion(
       },
       { $unwind: "$question.author" },
 
-      // Step 6: Lookup the `tags` data from the `tags` collection
       {
         $lookup: {
           from: "tags",
@@ -172,26 +164,23 @@ export async function getSavedQuestion(
           as: "question.tags",
         },
       },
-
-      // Step 7: Optional - Apply sorting
-      { $sort: sortCriteria },
-
-      // Step 8: Apply pagination
-      { $skip: skip },
-      { $limit: limit },
-
-      // Step 9: Project the necessary fields (e.g., `question` and `author`)
-      { $project: { question: 1, author: 1 } },
     ];
 
     const [totalCount] = await Collection.aggregate([
-      ...pipeline,
+      ...filterStages,
       { $count: "count" },
     ]);
+    const total = totalCount?.count || 0;
 
-    const questions = await Collection.aggregate(pipeline);
+    const questions = await Collection.aggregate([
+      ...filterStages,
+      { $sort: sortCriteria },
+      { $skip: skip },
+      { $limit: limit },
+      { $project: { question: 1, author: 1 } },
+    ]);
 
-    const isNext = totalCount.count > skip + QuestionDetails.length;
+    const isNext = total > skip + questions.length;
 
     return {
       success: true,

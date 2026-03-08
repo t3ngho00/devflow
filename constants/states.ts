@@ -56,5 +56,10 @@ export const EMPTY_ANSWERS = {
 
 export const EMPTY_USERS = {
   title: "No Users Found",
-  message: "You're ALONE. The only one here, more users coming soon",
+  message: "No Users Found",
 };
+
+export const EMPTY_COLLECTION = {
+  title: "No Question or Answer found",
+  message: "Let's go find something worth saving"
+}
