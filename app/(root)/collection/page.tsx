@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
@@ -6,7 +5,6 @@ import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
-import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/ROUTES";
 import {
   EMPTY_COLLECTION
@@ -36,22 +34,16 @@ export default async function Collection({ searchParams }: SearchParams) {
   const { collection } = data || {};
   return (
     <>
-      <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="h1-bold text-dark100_light900">Saved Questions</h1>
+      <h1 className="h1-bold text-dark100_light900">Saved Questions</h1>
 
-        <Button
-          className="primary-gradient min-h-[46px] px-4 py-3 !text-light-900"
-          asChild
-        >
-          <Link href={ROUTES.ASK_QUESTION}>Ask a Question</Link>
-        </Button>
-      </section>
-      <section className="mt-11">
+      <div className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearch
           imgSrc="/icons/search.svg"
-          placeholder="Search questions..."
+          placeholder="Search amazing minds here..."
+          otherClasses="flex-1"
         />
-      </section>
+
+      </div>
       <HomeFilter />
       <DataRenderer
         success={success}
