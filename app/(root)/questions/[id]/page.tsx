@@ -19,14 +19,21 @@ import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { hasVoted } from "@/lib/actions/vote.action";
 import { formatNumber } from "@/lib/utils";
 
-const QuestionDetails = async ({ params }: RouteParams) => {
+const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const { id: questionId } = await params;
+  const { page, pageSize, sort } = await searchParams;
   const { success, data: question } = await getQuestion({ questionId });
+  
   const {
     success: areAnswersLoaded,
     data: answersResult,
     error: answersError,
-  } = await getAnswers({ questionId });
+  } = await getAnswers({
+    questionId,
+    page: Number(page) || 1,
+    pageSize: Number(pageSize) || 10,
+    sort,
+  });
 
   after(async () => {
     await incrementViews({ questionId });
