@@ -1,5 +1,6 @@
 import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
+import Pagination from "@/components/Pagination";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import { EMPTY_QUESTION } from "@/constants/states";
@@ -16,7 +17,7 @@ const page = async ({ params, searchParams }: RouteParams) => {
     query,
   });
 
-  const { tag, questions } = data || {};
+  const { tag, questions, isNext } = data || {};
   return (
     <>
       <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
@@ -48,7 +49,8 @@ const page = async ({ params, searchParams }: RouteParams) => {
             </div>
           ))
         }
-      />
+      />{" "}
+      <Pagination page={page} isNext={isNext || false} />{" "}
     </>
   );
 };

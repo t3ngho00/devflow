@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
 import CommonFilter from "@/components/filters/CommonFilter";
+import Pagination from "@/components/Pagination";
 import LocalSearch from "@/components/search/LocalSearch";
 import { CollectionFilters } from "@/constants/filters";
 import ROUTES from "@/constants/ROUTES";
@@ -30,11 +31,10 @@ export default async function Collection({ searchParams }: SearchParams) {
     redirect(ROUTES.SIGN_IN);
   }
 
-  const { collection } = data || {};
+  const { collection, isNext } = data || {};
   return (
     <>
       <h1 className="h1-bold text-dark100_light900">Saved Questions</h1>
-
       <div className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearch
           imgSrc="/icons/search.svg"
@@ -44,7 +44,6 @@ export default async function Collection({ searchParams }: SearchParams) {
 
         <CommonFilter filters={CollectionFilters} otherClasses="min-h-[56px]" />
       </div>
-
       <DataRenderer
         success={success}
         error={error}
@@ -57,7 +56,8 @@ export default async function Collection({ searchParams }: SearchParams) {
             </div>
           ))
         }
-      />
+      />{" "}
+      <Pagination page={page} isNext={isNext || false} />{" "}
     </>
   );
 }

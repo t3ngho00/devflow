@@ -4,12 +4,22 @@ import { EMPTY_ANSWERS } from "@/constants/states";
 import AnswerCard from "../cards/AnswerCard";
 import DataRenderer from "../DataRenderer";
 import CommonFilter from "../filters/CommonFilter";
+import Pagination from "../Pagination";
 
 interface Props extends ActionResponse<Answer[]> {
   totalAnswers: number;
+  isNext: boolean;
+  page: number | string | undefined;
 }
 
-const AnswersSection = ({ data, success, error, totalAnswers }: Props) => {
+const AnswersSection = ({
+  data,
+  success,
+  error,
+  totalAnswers,
+  isNext,
+  page,
+}: Props) => {
   return (
     <div className="mt-11">
       <div className="flex items-center justify-between">
@@ -42,6 +52,7 @@ const AnswersSection = ({ data, success, error, totalAnswers }: Props) => {
           ))
         }
       />
+      <Pagination page={page} isNext={isNext} />
     </div>
   );
 };

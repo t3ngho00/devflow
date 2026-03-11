@@ -23,7 +23,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const { id: questionId } = await params;
   const { page, pageSize, sort } = await searchParams;
   const { success, data: question } = await getQuestion({ questionId });
-  
+
   const {
     success: areAnswersLoaded,
     data: answersResult,
@@ -135,6 +135,8 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
         error={answersError}
         success={areAnswersLoaded}
         totalAnswers={answersResult?.totalAnswers || 0}
+        isNext={answersResult?.isNext || false}
+        page={page}
       />
 
       <section className="my-5">
