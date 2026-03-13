@@ -19,6 +19,10 @@ const Pagination = ({ page, isNext, containerClasses }: Props) => {
     shallow: false,
   });
 
+  const hasPagination = pageNumber > 1 || isNext;
+
+  if (!hasPagination) return null;
+
   const handleChangePage = (type: "next" | "prev") => {
     const nextPage = type === "next" ? pageNumber + 1 : pageNumber - 1;
     setCurrentPage(nextPage.toString());
