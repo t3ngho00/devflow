@@ -72,6 +72,11 @@ interface GetUserWithStatsParams {
   userId: string;
 }
 
-interface GetUserQuestionsParams extends Omit<PaginatedSearchParams, "query" | "sort"> {
+interface GetUserQuestionsParams
+  extends Omit<PaginatedSearchParams, "query" | "sort"> {
+  userId: string;
+}
+
+interface GetUserAnswersParams extends PaginatedSearchParams {
   userId: string;
 }

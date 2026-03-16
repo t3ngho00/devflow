@@ -4,10 +4,17 @@ import { Suspense } from "react";
 
 import ROUTES from "@/constants/ROUTES";
 import { hasVoted } from "@/lib/actions/vote.action";
+import { cn } from "@/lib/utils";
 
 import Preview from "../editor/Preview";
 import UserAvatar from "../UserAvatar";
 import Votes from "../votes/Votes";
+
+interface Props extends Omit<Answer, "question"> {
+  question?: string;
+  containerClasses?: string;
+  showReadMore?: boolean;
+}
 
 const AnswerCard = ({
   _id,
@@ -16,11 +23,18 @@ const AnswerCard = ({
   createdAt,
   upvotes,
   downvotes,
-}: Answer) => {
-  const hasVotedPromise = hasVoted({ targetId: _id, targetType: "answer" });
+  question,
+  containerClasses,
+  showReadMore = false,
+}: Props) => {
+  const answerId = String(_id);
+  const hasVotedPromise = hasVoted({
+    targetId: answerId,
+    targetType: "answer",
+  });
   return (
-    <article className="light-border border-b py-10">
-      <span id={JSON.stringify(_id)} className="hash-span" />
+    <article className={cn("light-border border-b py-10", containerClasses)}>
+      <span id={`answer-${answerId}`} className="hash-span" />
 
       <div className="mb-5 flex flex-col-reverse justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
         <div className="flex flex-1 items-start gap-1 sm:items-center">
@@ -52,7 +66,7 @@ const AnswerCard = ({
               upvotes={upvotes}
               downvotes={downvotes}
               hasVotedPromise={hasVotedPromise}
-              targetId={_id}
+              targetId={answerId}
               targetType="answer"
             />
           </Suspense>
@@ -60,6 +74,14 @@ const AnswerCard = ({
       </div>
 
       <Preview content={content} />
+      {showReadMore && question && (
+        <Link
+          href={`/questions/${question}#answer-${answerId}`}
+          className="body-semibold relative z-10 font-space-grotesk text-primary-500"
+        >
+          <p className="mt-1">Read more...</p>
+        </Link>
+      )}
     </article>
   );
 };
