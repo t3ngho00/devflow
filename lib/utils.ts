@@ -7,6 +7,79 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const isObjectId = (
+  value: unknown
+): value is { _bsontype: "ObjectId"; toHexString: () => string } => {
+  if (!value || typeof value !== "object") return false;
+
+  const candidate = value as {
+    _bsontype?: unknown;
+    toHexString?: unknown;
+  };
+
+  return (
+    candidate._bsontype === "ObjectId" &&
+    typeof candidate.toHexString === "function"
+  );
+};
+
+const normalizeForSerialization = (value: unknown): unknown => {
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+
+  if (isObjectId(value)) {
+    return value.toHexString();
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeForSerialization(entry));
+  }
+
+  if (value instanceof Map) {
+    return Object.fromEntries(
+      Array.from(value.entries()).map(([key, entry]) => [
+        String(key),
+        normalizeForSerialization(entry),
+      ])
+    );
+  }
+
+  if (value instanceof Set) {
+    return Array.from(value).map((entry) => normalizeForSerialization(entry));
+  }
+
+  if (typeof (value as { toObject?: () => unknown }).toObject === "function") {
+    return normalizeForSerialization(
+      (value as { toObject: () => unknown }).toObject()
+    );
+  }
+
+  if (typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, entry]) => [
+        key,
+        normalizeForSerialization(entry),
+      ])
+    );
+  }
+
+  return String(value);
+};
+
+export const toPlainObject = <T>(value: T): T =>
+  normalizeForSerialization(value) as T;
+
 export function getTechIcon(techName: string): string {
   return getDevIcon(techName);
 }

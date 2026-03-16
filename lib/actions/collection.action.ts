@@ -8,6 +8,7 @@ import { Collection, Question } from "@/database";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
+import { toPlainObject } from "../utils";
 import {
   CollectionBaseSchema,
   PaginatedSearchParamsSchema,
@@ -185,7 +186,7 @@ export async function getSavedQuestion(
     return {
       success: true,
       data: {
-        collection: JSON.parse(JSON.stringify(questions)),
+        collection: toPlainObject(questions),
         isNext,
       },
     };

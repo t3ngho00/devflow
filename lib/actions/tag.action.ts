@@ -5,6 +5,7 @@ import { Question, Tag } from "@/database";
 import action from "../handlers/action";
 import handleError from "../handlers/error";
 import dbConnect from "../mongoose";
+import { toPlainObject } from "../utils";
 import {
   GetTagQuestionsSchema,
   PaginatedSearchParamsSchema,
@@ -59,14 +60,15 @@ export const getTags = async (
     const tags = await Tag.find(filterQuery)
       .sort(sortCriteria)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean<Tag[]>();
 
     const isNext = totalTags > skip + tags.length;
 
     return {
       success: true,
       data: {
-        tags: JSON.parse(JSON.stringify(tags)),
+        tags: toPlainObject(tags),
         isNext,
       },
     };
@@ -95,7 +97,7 @@ export const getTagQuestions = async (
   const limit = Number(pageSize);
 
   try {
-    const tag = await Tag.findById(tagId);
+    const tag = await Tag.findById(tagId).lean<Tag>();
     if (!tag) throw new Error("Tag not found");
 
     const filterQuery: FilterQuery<typeof Question> = {
@@ -115,15 +117,16 @@ export const getTagQuestions = async (
         { path: "tags", select: "name" },
       ])
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean<Question[]>();
 
     const isNext = totalQuestions > skip + questions.length;
 
     return {
       success: true,
       data: {
-        tag: JSON.parse(JSON.stringify(tag)),
-        questions: JSON.parse(JSON.stringify(questions)),
+        tag: toPlainObject(tag),
+        questions: toPlainObject(questions),
         isNext,
       },
     };
@@ -136,11 +139,14 @@ export const getTopTags = async (): Promise<ActionResponse<Tag[]>> => {
   try {
     await dbConnect();
 
-    const tags = await Tag.find().sort({ questions: -1 }).limit(5);
+    const tags = await Tag.find()
+      .sort({ questions: -1 })
+      .limit(5)
+      .lean<Tag[]>();
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(tags)),
+      data: toPlainObject(tags),
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

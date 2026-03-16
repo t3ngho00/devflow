@@ -10,6 +10,7 @@ import action from "../handlers/action";
 import handleError from "../handlers/error";
 import { UnauthorizedError } from "../http-errors";
 import dbConnect from "../mongoose";
+import { toPlainObject } from "../utils";
 import {
   AskQuestionSchema,
   EditQuestionSchema,
@@ -80,7 +81,7 @@ export async function createQuestion(
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(question)),
+      data: toPlainObject(question),
       status: 201,
     };
   } catch (error) {
@@ -201,7 +202,7 @@ export async function editQuestion(
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(question)),
+      data: toPlainObject(question),
       status: 200,
     };
   } catch (error) {
@@ -230,13 +231,14 @@ export async function getQuestion(
   try {
     const question = await Question.findById(questionId)
       .populate("tags")
-      .populate("author", "_id name image");
+      .populate("author", "_id name image")
+      .lean<Question>();
 
     if (!question) {
       throw new Error("Question not found");
     }
 
-    return { success: true, data: JSON.parse(JSON.stringify(question)) };
+    return { success: true, data: toPlainObject(question) };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
@@ -297,7 +299,7 @@ export async function getQuestions(
     const questions = await Question.find(filterQuery)
       .populate("tags", "name")
       .populate("author", "name image")
-      .lean()
+      .lean<Question[]>()
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit);
@@ -306,7 +308,7 @@ export async function getQuestions(
 
     return {
       success: true,
-      data: { questions: JSON.parse(JSON.stringify(questions)), isNext },
+      data: { questions: toPlainObject(questions), isNext },
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;
@@ -345,10 +347,11 @@ export async function getTopQuestions(): Promise<ActionResponse<Question[]>> {
 
     const questions = await Question.find()
       .sort({ views: -1, upvotes: -1 })
-      .limit(5);
+      .limit(5)
+      .lean<Question[]>();
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(questions)),
+      data: toPlainObject(questions),
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

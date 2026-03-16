@@ -9,6 +9,7 @@ import Answer, { IAnswerDoc } from "@/database/answer.model";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
+import { toPlainObject } from "../utils";
 import { AnswerServerSchema, GetAnswersSchema } from "../validation";
 
 export async function createAnswer(
@@ -51,7 +52,7 @@ export async function createAnswer(
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(newAnswer)),
+      data: toPlainObject(newAnswer),
       status: 201,
     };
   } catch (error) {

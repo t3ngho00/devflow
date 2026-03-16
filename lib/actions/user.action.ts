@@ -6,6 +6,7 @@ import { Answer, Question, User } from "@/database";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
+import { toPlainObject } from "../utils";
 import {
   GetUserQuestionsSchema,
   GetUsersAnswersSchema,
@@ -58,7 +59,7 @@ export async function getUsers(
     const totalUsers = await User.countDocuments(filterQuery);
 
     const users = await User.find(filterQuery)
-      .lean()
+      .lean<User[]>()
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit);
@@ -67,7 +68,7 @@ export async function getUsers(
 
     return {
       success: true,
-      data: { users: JSON.parse(JSON.stringify(users)), isNext },
+      data: { users: toPlainObject(users), isNext },
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;
@@ -101,7 +102,7 @@ export async function getUserWithStats(params: GetUserWithStatsParams): Promise<
     return {
       success: true,
       data: {
-        user,
+        user: toPlainObject(user),
         totalQuestions,
         totalAnswers,
       },
@@ -141,14 +142,15 @@ export async function getUserQuestions(params: GetUserQuestionsParams): Promise<
       .populate("tags", "name")
       .populate("author", "name image")
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean<Question[]>();
 
     const isNext = totalQuestions > skip + questions.length;
 
     return {
       success: true,
       data: {
-        questions: JSON.parse(JSON.stringify(questions)),
+        questions: toPlainObject(questions),
         isNext,
       },
     };
@@ -178,14 +180,15 @@ export async function getUsersAnswers(
     const answers = await Answer.find({ author: userId })
       .populate("author", "_id name image")
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean<Answer[]>();
 
     const isNext = totalAnswers > skip + answers.length;
 
     return {
       success: true,
       data: {
-        answers: JSON.parse(JSON.stringify(answers)),
+        answers: toPlainObject(answers),
         isNext,
       },
     };
