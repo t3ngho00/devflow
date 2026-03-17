@@ -198,7 +198,7 @@ export async function getUsersAnswers(
   }
 }
 
-export async function getUserTags(
+export async function getUserTopTags(
   params: GetUserTagsParams
 ): Promise<
   ActionResponse<{ tags: { _id: string; name: string; count: number }[] }>
@@ -218,7 +218,7 @@ export async function getUserTags(
     const pipeline: PipelineStage[] = [
       { $match: { author: new Types.ObjectId(userId) } },
       { $unwind: "$tags" },
-      { $group: { _id: "$tags", $count: { $sum: 1 } } },
+      { $group: { _id: "$tags", count: { $sum: 1 } } },
       {
         $lookup: {
           from: "tags",
@@ -238,6 +238,7 @@ export async function getUserTags(
         },
       },
     ];
+
     const tags = await Question.aggregate(pipeline);
 
     return {
