@@ -24,49 +24,47 @@ import {
 
 const Profile = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
-  const { page, pageSize } = await searchParams;
+  const { questionsPage, questionsPageSize, answersPage, answersPageSize } =
+    await searchParams;
 
   if (!id) return notFound();
 
-  const loggedInUser = await auth();
-  const { success, data, error } = await getUserWithStats({ userId: id });
+  const [
+    loggedInUser,
+    { success: userStatsSuccess, data: userStatsData, error: userStatsError },
+    {
+      success: userQuestionsSuccess,
+      data: userQuestions,
+      error: userQuestionsError,
+    },
+    { success: userAnswersSuccess, data: userAnswers, error: userAnswersError },
+    { success: userTopTagsSuccess, data: userTopTags, error: userTopTagsError },
+  ] = await Promise.all([
+    auth(),
+    getUserWithStats({ userId: id }),
+    getUserQuestions({
+      userId: id,
+      page: Number(questionsPage) || 1,
+      pageSize: Number(questionsPageSize) || 10,
+    }),
+    getUsersAnswers({
+      userId: id,
+      page: Number(answersPage) || 1,
+      pageSize: Number(answersPageSize) || 10,
+    }),
+    getUserTopTags({ userId: id }),
+  ]);
 
-  if (!success || !data)
+  if (!userStatsSuccess || !userStatsData)
     return (
       <div>
-        <div className="h1-bold text-dark100_light900">{error?.message}</div>
+        <div className="h1-bold text-dark100_light900">
+          {userStatsError?.message}
+        </div>
       </div>
     );
 
-  const { user, totalQuestions, totalAnswers } = data;
-
-  const {
-    success: userQuestionsSuccess,
-    data: userQuestions,
-    error: userQuestionsError,
-  } = await getUserQuestions({
-    userId: id,
-    page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
-  });
-
-  const {
-    success: userAnswersSuccess,
-    data: userAnswers,
-    error: userAnswersError,
-  } = await getUsersAnswers({
-    userId: id,
-    page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
-  });
-
-  const {
-    success: userTopTagsSuccess,
-    data: userTopTags,
-    error: userTopTagsError,
-  } = await getUserTopTags({
-    userId: id,
-  });
+  const { user, totalQuestions, totalAnswers } = userStatsData;
 
   const { tags } = userTopTags!;
 
@@ -170,7 +168,7 @@ const Profile = async ({ params, searchParams }: RouteParams) => {
               )}
             />
 
-            <Pagination page={page} isNext={hasMoreQuestions} />
+            <Pagination page={questionsPage} isNext={hasMoreQuestions} />
           </TabsContent>
           <TabsContent value="answers" className="flex w-full flex-col gap-6">
             <DataRenderer
@@ -192,7 +190,7 @@ const Profile = async ({ params, searchParams }: RouteParams) => {
                 </div>
               )}
             />
-            <Pagination page={page} isNext={hasMoreAnswers || false} />
+            <Pagination page={answersPage} isNext={hasMoreAnswers || false} />
           </TabsContent>
         </Tabs>
 
