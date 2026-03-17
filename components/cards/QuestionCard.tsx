@@ -6,21 +6,24 @@ import ROUTES from "@/constants/ROUTES";
 
 import TagCard from "./TagCard";
 import Metric from "../Metric";
+import EditDeleteAction from "../user/EditDeleteAction";
 import UserAvatar from "../UserAvatar";
 
 interface Props {
   question: Question;
+  showActionBtns?: boolean;
 }
 
 const QuestionCard = ({
   question: { _id, title, tags, author, createdAt, upvotes, answers, views },
+  showActionBtns = false,
 }: Props) => {
   const timeAgo = formatDistance(new Date(), createdAt);
 
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
-      <div className="flex flex-col-reverse items-start justify-between gap-5 sm:flex-row">
-        <div>
+      <div className="flex flex-col-reverse items-center justify-between gap-5 sm:flex-row">
+        <div className="flex-1">
           <span className="subtle-regular text-dark400_light700 line-clamp-1 flex sm:hidden">
             {timeAgo}
           </span>
@@ -31,6 +34,8 @@ const QuestionCard = ({
             </h3>
           </Link>
         </div>
+
+        {showActionBtns && <EditDeleteAction type="Question" itemId={_id} />}
       </div>
 
       <div className="mt-3.5 flex w-full flex-wrap gap-2">
