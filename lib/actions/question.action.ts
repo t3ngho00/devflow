@@ -222,7 +222,6 @@ export async function getQuestion(
   const validationResult = await action({
     params,
     schema: GetQuestionSchema,
-    authorize: true,
   });
 
   if (validationResult instanceof Error) {
@@ -387,7 +386,7 @@ export async function deleteQuestion(
     if (!question) throw new Error("Question not found");
 
     if (question.author.toString() !== user?.id)
-      throw new Error("You are not authorized to delete this question");
+      throw new Error("You're not authorized to do this action");
 
     // Delete references from collection
     await Collection.deleteMany({ question: questionId }).session(session);

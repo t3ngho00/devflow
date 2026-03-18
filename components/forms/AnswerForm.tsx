@@ -37,6 +37,7 @@ interface Props {
 const AnswerForm = ({ questionId, questionTitle, questionContent }: Props) => {
   const [isSubmitting, startSubmittingTransition] = useTransition();
   const [isAISubmitting, setIsAISubmitting] = useState(false);
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const session = useSession();
 
   const editorRef = useRef<MDXEditorMethods>(null);
@@ -56,7 +57,9 @@ const AnswerForm = ({ questionId, questionTitle, questionContent }: Props) => {
       });
 
       if (result.success) {
-        form.reset();
+        form.reset({ content: "" });
+        editorRef.current?.setMarkdown("");
+        setEditorResetKey((prev) => prev + 1);
 
         toast.success("Your answer has been posted successfully");
       } else {
@@ -157,7 +160,7 @@ const AnswerForm = ({ questionId, questionTitle, questionContent }: Props) => {
               <FormItem className="flex w-full flex-col gap-3">
                 <FormControl className="mt-3.5">
                   <Editor
-                    key={form.getValues("content") || "empty"}
+                    key={editorResetKey}
                     value={field.value}
                     editorRef={editorRef}
                     fieldChange={field.onChange}

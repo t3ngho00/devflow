@@ -151,7 +151,7 @@ export const AIAnswerSchema = z.object({
   content: z
     .string()
     .min(100, { message: "Answer has to have more than 100 characters." }),
-  userAsnwer: z.string().optional(),
+  userAnswer: z.string().optional(),
 });
 
 export const CreateVoteSchema = z.object({
@@ -193,4 +193,8 @@ export const GetUserTagsSchema = z.object({
 
 export const DeleteQuestionSchema = z.object({
   questionId: z.string().min(1, { message: "Question ID is required" }),
+});
+
+export const DeleteAnswerSchema = z.object({
+  answerId: z.string().min(1, { message: "Answer ID is required" }),
 });

@@ -13,10 +13,14 @@ const openrouter = createOpenAI({
 });
 
 export async function POST(req: Request) {
-  const { question, content } = await req.json();
+  const { question, content, userAnswer } = await req.json();
 
   try {
-    const validatedData = AIAnswerSchema.safeParse({ question, content });
+    const validatedData = AIAnswerSchema.safeParse({
+      question,
+      content,
+      userAnswer,
+    });
     if (!validatedData.success)
       throw new ValidationError(
         z.treeifyError(validatedData.error) as unknown as Record<
@@ -25,9 +29,13 @@ export async function POST(req: Request) {
         >
       );
 
+    const userAnswerContext = userAnswer
+      ? ` Prioritize and refine this draft answer when helpful: ${userAnswer}`
+      : "";
+
     const { text } = await generateText({
       model: openrouter("arcee-ai/trinity-large-preview:free"),
-      prompt: `Generate a markdown-formatted response to the following question: ${question}. Base it on the provided content: ${content}`,
+      prompt: `Generate a markdown-formatted response to the following question: ${question}. Base it on the provided content: ${content}.${userAnswerContext}`,
       system:
         "You are a helpful assistant that provides informative responses in markdown format. Use appropriate markdown syntax for headings, lists, code blocks, and emphasis where necessary. For code blocks, use short-form smaller case language identifiers (e.g., 'js' for JavaScript, 'py' for Python, 'ts' for TypeScript, 'html' for HTML, 'css' for CSS, etc.).",
     });

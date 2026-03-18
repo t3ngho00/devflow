@@ -64,9 +64,13 @@ export const api = {
       });
     },
   },
-    ai: {
-    getAnswer: (question: string, content: string, userAnswer?: string): APIResponse<string> =>
-      fetchHandler(`${API_BASE_URL}/ai/answers`, {
+  ai: {
+    getAnswer: (
+      question: string,
+      content: string,
+      userAnswer?: string
+    ): APIResponse<string> =>
+      fetchHandler("/api/ai/answers", {
         method: "POST",
         body: JSON.stringify({ question, content, userAnswer }),
       }),
