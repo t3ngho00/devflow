@@ -6,7 +6,7 @@ import { signIn } from "@/auth";
 import Account from "@/database/account.model";
 import User from "@/database/user.model";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import { NotFoundError } from "../http-errors";
 import { SignInSchema, SignUpSchema } from "../validation";
@@ -14,7 +14,7 @@ import { SignInSchema, SignUpSchema } from "../validation";
 export async function signUpWithCredentials(
   params: AuthCredentials
 ): Promise<ActionResponse> {
-  const validationResult = await action({ params, schema: SignUpSchema });
+  const validationResult = await prepareActionContext({ params, schema: SignUpSchema });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
@@ -74,7 +74,7 @@ export async function signUpWithCredentials(
 export async function signInWithCredentials(
   params: Pick<AuthCredentials,  "email" | "password">
 ): Promise<ActionResponse> {
-  const validationResult = await action({ params, schema: SignInSchema });
+  const validationResult = await prepareActionContext({ params, schema: SignInSchema });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;

@@ -8,7 +8,7 @@ import Question, { IQuestionDoc } from "@/database/question.model";
 import TagQuestion from "@/database/tag-question.model";
 import Tag, { ITagDoc } from "@/database/tag.model";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import { UnauthorizedError } from "../http-errors";
 import dbConnect from "../mongoose";
@@ -24,7 +24,7 @@ import {
 export async function createQuestion(
   params: CreateQuestionParams
 ): Promise<ActionResponse<Question>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: AskQuestionSchema,
     authorize: true,
@@ -98,7 +98,7 @@ export async function createQuestion(
 export async function editQuestion(
   params: EditQuestionParams
 ): Promise<ActionResponse<IQuestionDoc>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: EditQuestionSchema,
     authorize: true,
@@ -219,7 +219,7 @@ export async function editQuestion(
 export async function getQuestion(
   params: GetQuestionParams
 ): Promise<ActionResponse<Question>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: GetQuestionSchema,
   });
@@ -249,7 +249,7 @@ export async function getQuestion(
 export async function getQuestions(
   params: PaginatedSearchParams
 ): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: PaginatedSearchParamsSchema,
   });
@@ -320,7 +320,7 @@ export async function getQuestions(
 export async function incrementViews(
   params: IncrementViewsParams
 ): Promise<ActionResponse<{ views: number }>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: IncrementViewsSchema,
   });
@@ -363,7 +363,7 @@ export async function getTopQuestions(): Promise<ActionResponse<Question[]>> {
 export async function deleteQuestion(
   params: DeleteQuestionParams
 ): Promise<ActionResponse> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: DeleteQuestionSchema,
     authorize: true,

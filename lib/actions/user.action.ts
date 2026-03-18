@@ -4,7 +4,7 @@ import { FilterQuery, PipelineStage, Types } from "mongoose";
 
 import { Answer, Question, User } from "@/database";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import { toPlainObject } from "../utils";
 import {
@@ -18,7 +18,7 @@ import {
 export async function getUsers(
   params: PaginatedSearchParams
 ): Promise<ActionResponse<{ users: User[]; isNext: boolean }>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: PaginatedSearchParamsSchema,
   });
@@ -83,7 +83,7 @@ export async function getUserWithStats(params: GetUserWithStatsParams): Promise<
     totalAnswers: number;
   }>
 > {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: GetUserWithStatsSchema,
   });
@@ -119,7 +119,7 @@ export async function getUserQuestions(params: GetUserQuestionsParams): Promise<
     isNext: boolean;
   }>
 > {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: GetUserQuestionsSchema,
   });
@@ -163,7 +163,7 @@ export async function getUserQuestions(params: GetUserQuestionsParams): Promise<
 export async function getUsersAnswers(
   params: GetUserAnswersParams
 ): Promise<ActionResponse<{ answers: Answer[]; isNext: boolean }>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: GetUsersAnswersSchema,
   });
@@ -203,7 +203,7 @@ export async function getUserTopTags(
 ): Promise<
   ActionResponse<{ tags: { _id: string; name: string; count: number }[] }>
 > {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: GetUserTagsSchema,
   });

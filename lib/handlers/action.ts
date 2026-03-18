@@ -19,7 +19,7 @@ type ActionOptions<T> = {
 // 3. Connecting to the database.
 // 4. Returning the params and session.
 
-async function action<T>({
+async function prepareActionContext<T>({
   params,
   schema,
   authorize = false,
@@ -53,4 +53,4 @@ async function action<T>({
   return { params, session };
 }
 
-export default action;
+export default prepareActionContext;

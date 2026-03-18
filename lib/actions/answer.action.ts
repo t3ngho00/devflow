@@ -7,7 +7,7 @@ import ROUTES from "@/constants/ROUTES";
 import { Question, Vote } from "@/database";
 import Answer, { IAnswerDoc } from "@/database/answer.model";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import { toPlainObject } from "../utils";
 import {
@@ -19,7 +19,7 @@ import {
 export async function createAnswer(
   params: CreateAnswerParams
 ): Promise<ActionResponse<IAnswerDoc>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: AnswerServerSchema,
     authorize: true,
@@ -74,7 +74,7 @@ export async function getAnswers(params: GetAnswersParams): Promise<
     totalAnswers: number;
   }>
 > {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: GetAnswersSchema,
   });
@@ -132,7 +132,7 @@ export async function getAnswers(params: GetAnswersParams): Promise<
 export async function deleteAnswer(
   params: DeleteAnswerParams
 ): Promise<ActionResponse> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: DeleteAnswerSchema,
     authorize: true,

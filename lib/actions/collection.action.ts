@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import ROUTES from "@/constants/ROUTES";
 import { Collection, Question } from "@/database";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import { toPlainObject } from "../utils";
 import {
@@ -17,7 +17,7 @@ import {
 export async function toggleSaveQuestion(
   params: CollectionBaseParams
 ): Promise<ActionResponse<{ saved: boolean }>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: CollectionBaseSchema,
     authorize: true,
@@ -56,7 +56,7 @@ export async function toggleSaveQuestion(
 export async function hasSavedQuestion(
   params: CollectionBaseParams
 ): Promise<ActionResponse<{ saved: boolean }>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: CollectionBaseSchema,
     authorize: true,
@@ -89,7 +89,7 @@ export async function hasSavedQuestion(
 export async function getSavedQuestion(
   params: PaginatedSearchParams
 ): Promise<ActionResponse<{ collection: Collection[]; isNext: boolean }>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: PaginatedSearchParamsSchema,
     authorize: true,

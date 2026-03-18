@@ -3,28 +3,28 @@ import mongoose from "mongoose";
 import { User } from "@/database";
 import Interaction, { IInteractionDoc } from "@/database/interaction.model";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import { CreateInteractionSchema } from "../validation";
 
 export async function createInteraction(
   params: CreateInteractionParams
 ): Promise<ActionResponse<IInteractionDoc>> {
-  const validationResult = await action({
+  const actionContext = await prepareActionContext({
     params,
     schema: CreateInteractionSchema,
     authorize: true,
   });
-  if (validationResult instanceof Error)
-    return handleError(validationResult) as ErrorResponse;
+  if (actionContext instanceof Error)
+    return handleError(actionContext) as ErrorResponse;
 
   const {
-    action: interactionAction,
+    action,
     targetId,
     targetType,
     targetAuthorId,
-  } = validationResult.params!;
-  const actorId = validationResult.session?.user?.id;
+  } = actionContext.params!;
+  const actorId = actionContext.session?.user?.id;
 
   const session = await mongoose.startSession();
 
@@ -35,7 +35,7 @@ export async function createInteraction(
       [
         {
           actorId,
-          action: interactionAction,
+          action,
           targetId,
           targetType,
           targetAuthorId,

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import ROUTES from "@/constants/ROUTES";
 import { Answer, Question, Vote } from "@/database";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import {
   CreateVoteSchema,
@@ -18,7 +18,7 @@ export async function updateVoteCount(
   params: UpdateVoteCountParams,
   session?: ClientSession
 ): Promise<ActionResponse> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: UpdateVoteCountSchema,
   });
@@ -53,7 +53,7 @@ export async function updateVoteCount(
 export async function createVote(
   params: CreateVoteParams
 ): Promise<ActionResponse> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: CreateVoteSchema,
     authorize: true,
@@ -143,7 +143,7 @@ export async function createVote(
 export async function hasVoted(
   params: HasVotedParams
 ): Promise<ActionResponse<HasVotedResponse>> {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: HasVotedSchema,
     authorize: true,

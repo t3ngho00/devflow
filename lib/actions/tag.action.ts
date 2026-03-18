@@ -2,7 +2,7 @@ import { FilterQuery } from "mongoose";
 
 import { Question, Tag } from "@/database";
 
-import action from "../handlers/action";
+import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import dbConnect from "../mongoose";
 import { toPlainObject } from "../utils";
@@ -14,7 +14,7 @@ import {
 export const getTags = async (
   params: PaginatedSearchParams
 ): Promise<ActionResponse<{ tags: Tag[]; isNext: boolean }>> => {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: PaginatedSearchParamsSchema,
   });
@@ -82,7 +82,7 @@ export const getTagQuestions = async (
 ): Promise<
   ActionResponse<{ tag: Tag; questions: Question[]; isNext: boolean }>
 > => {
-  const validationResult = await action({
+  const validationResult = await prepareActionContext({
     params,
     schema: GetTagQuestionsSchema,
   });
