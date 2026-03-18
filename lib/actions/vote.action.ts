@@ -69,9 +69,9 @@ export async function createVote(
   if (!userId) return handleError(new Error("Unauthorized")) as ErrorResponse;
 
   const session = await mongoose.startSession();
-  session.startTransaction();
-
+  
   try {
+    session.startTransaction();
     const existingVote = await Vote.findOne({
       author: userId,
       actionId: targetId,

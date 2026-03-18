@@ -29,9 +29,9 @@ export async function createAnswer(
   const userId = validationResult.session!.user!.id;
 
   const session = await mongoose.startSession();
-  session.startTransaction();
-
+  
   try {
+    session.startTransaction();
     const question = await Question.findById(questionId);
 
     if (!question) throw new Error("Question not found");

@@ -23,9 +23,9 @@ export async function signUpWithCredentials(
   const { name, username, email, password } = validationResult.params!;
 
   const session = await mongoose.startSession();
-  session.startTransaction();
-
+  
   try {
+    session.startTransaction();
     const existingUser = await User.findOne({ email }).session(session);
 
     if (existingUser) {
