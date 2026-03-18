@@ -6,7 +6,7 @@ import { Answer, Question, User } from "@/database";
 
 import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
-import { toPlainObject } from "../utils";
+import { assignBadges, toPlainObject } from "../utils";
 import {
   GetUserQuestionsSchema,
   GetUsersAnswersSchema,
@@ -76,11 +76,9 @@ export async function getUsers(
   }
 }
 
-export async function getUserWithStats(params: GetUserWithStatsParams): Promise<
+export async function getUser(params: GetUserWithStatsParams): Promise<
   ActionResponse<{
     user: User;
-    totalQuestions: number;
-    totalAnswers: number;
   }>
 > {
   const validationResult = await prepareActionContext({
@@ -97,15 +95,10 @@ export async function getUserWithStats(params: GetUserWithStatsParams): Promise<
 
     if (!user) return handleError(new Error("User not found")) as ErrorResponse;
 
-    const totalQuestions = await Question.countDocuments({ author: userId });
-    const totalAnswers = await Answer.countDocuments({ author: userId });
-
     return {
       success: true,
       data: {
         user: toPlainObject(user),
-        totalQuestions,
-        totalAnswers,
       },
     };
   } catch (error) {
@@ -245,6 +238,74 @@ export async function getUserTopTags(
       success: true,
       data: {
         tags: JSON.parse(JSON.stringify(tags)),
+      },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getUserStats(params: GetUserStats): Promise<
+  ActionResponse<{
+    totalQuestions: number;
+    totalAnswers: number;
+    badgeCounts: BadgeCounts;
+  }>
+> {
+  const validationResult = await prepareActionContext({
+    params,
+    schema: GetUserWithStatsSchema,
+  });
+  if (validationResult instanceof Error)
+    return handleError(validationResult) as ErrorResponse;
+
+  const { userId } = params;
+
+  try {
+    const user = await User.findById(userId).lean<User>();
+
+    if (!user) return handleError(new Error("User not found")) as ErrorResponse;
+
+    const [questionStats] = await Question.aggregate([
+      { $match: { author: new Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+          views: { $sum: "$views" },
+        },
+      },
+    ]);
+
+    const [answerStats] = await Answer.aggregate([
+      { $match: { author: new Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          upvotes: { $sum: "$upvotes" },
+        },
+      },
+    ]);
+
+    const badgeCounts = assignBadges({
+      criteria: [
+        { type: "ANSWER_COUNT", count: answerStats.count },
+        { type: "QUESTION_COUNT", count: questionStats.count },
+        {
+          type: "QUESTION_UPVOTES",
+          count: questionStats.upvotes + answerStats.upvotes,
+        },
+        { type: "TOTAL_VIEWS", count: questionStats.views },
+      ],
+    });
+    return {
+      success: true,
+      data: {
+        totalQuestions: questionStats.count,
+        totalAnswers: answerStats.count,
+        badgeCounts,
       },
     };
   } catch (error) {

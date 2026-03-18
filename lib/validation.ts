@@ -210,3 +210,7 @@ export const CreateInteractionSchema = z.object({
     .min(1, { message: "Target author ID is required" }),
   voteType: z.enum(["upvote", "downvote"]).optional(),
 });
+
+export const GetuserStats = z.object({
+  userId: z.string().min(1, { message: "User ID is required" }),
+});

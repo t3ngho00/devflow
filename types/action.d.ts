@@ -116,3 +116,7 @@ interface UpdateReputationParams {
   actorId: string;
   targetAuthorId: string;
 }
+
+interface GetUserStats {
+  userId: string;
+}

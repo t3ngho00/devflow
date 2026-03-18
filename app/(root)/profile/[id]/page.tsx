@@ -19,7 +19,8 @@ import {
   getUserQuestions,
   getUsersAnswers,
   getUserTopTags,
-  getUserWithStats,
+  getUser,
+  getUserStats,
 } from "@/lib/actions/user.action";
 
 const Profile = async ({ params, searchParams }: RouteParams) => {
@@ -31,7 +32,8 @@ const Profile = async ({ params, searchParams }: RouteParams) => {
 
   const [
     loggedInUser,
-    { success: userStatsSuccess, data: userStatsData, error: userStatsError },
+    { success: userSuccess, data: userData, error: userError },
+    { data: userStatsData },
     {
       success: userQuestionsSuccess,
       data: userQuestions,
@@ -41,7 +43,8 @@ const Profile = async ({ params, searchParams }: RouteParams) => {
     { success: userTopTagsSuccess, data: userTopTags, error: userTopTagsError },
   ] = await Promise.all([
     auth(),
-    getUserWithStats({ userId: id }),
+    getUser({ userId: id }),
+    getUserStats({ userId: id }),
     getUserQuestions({
       userId: id,
       page: Number(questionsPage) || 1,
@@ -55,16 +58,16 @@ const Profile = async ({ params, searchParams }: RouteParams) => {
     getUserTopTags({ userId: id }),
   ]);
 
-  if (!userStatsSuccess || !userStatsData)
+  if (!userSuccess || !userData)
     return (
       <div>
         <div className="h1-bold text-dark100_light900">
-          {userStatsError?.message}
+          {userError?.message}
         </div>
       </div>
     );
 
-  const { user, totalQuestions, totalAnswers } = userStatsData;
+  const { user } = userData;
 
   const { tags } = userTopTags!;
 
@@ -131,14 +134,10 @@ const Profile = async ({ params, searchParams }: RouteParams) => {
       </section>
 
       <Stats
-        totalQuestions={totalQuestions}
-        totalAnswers={totalAnswers}
-        badges={{
-          GOLD: 0,
-          SILVER: 0,
-          BRONZE: 0,
-        }}
-        reputationPoints = {user.reputation || 0}
+        totalQuestions={userStatsData?.totalQuestions || 0}
+        totalAnswers={userStatsData?.totalAnswers || 0}
+        badges={userStatsData?.badgeCounts || { GOLD: 0, SILVER: 0, BRONZE: 0 }}
+        reputationPoints={user.reputation || 0}
       />
 
       <section className="mt-10 flex gap-10">
