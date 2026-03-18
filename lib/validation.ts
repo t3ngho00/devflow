@@ -208,4 +208,5 @@ export const CreateInteractionSchema = z.object({
   targetAuthorId: z
     .string()
     .min(1, { message: "Target author ID is required" }),
+  voteType: z.enum(["upvote", "downvote"]).optional(),
 });

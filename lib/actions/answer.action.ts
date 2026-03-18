@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import ROUTES from "@/constants/ROUTES";
 import { Question, Vote } from "@/database";
@@ -15,6 +16,7 @@ import {
   DeleteAnswerSchema,
   GetAnswersSchema,
 } from "../validation";
+import { createInteraction } from "./interaction.action";
 
 export async function createAnswer(
   params: CreateAnswerParams
@@ -49,6 +51,15 @@ export async function createAnswer(
 
     question.answers += 1;
     await question.save({ session });
+
+    after(async () => {
+      await createInteraction({
+        action: "post",
+        targetId: newAnswer._id.toString(),
+        targetType: "answer",
+        targetAuthorId: userId as string,
+      });
+    });
 
     await session.commitTransaction();
 

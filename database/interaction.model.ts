@@ -6,12 +6,14 @@ export interface IInteraction {
   targetId: Types.ObjectId;
   targetType: "question" | "answer";
   targetAuthorId: Types.ObjectId;
+  voteType?: "upvote" | "downvote";
 }
 
 export const InteractionActionEnums = [
   "view",
   "upvote",
   "downvote",
+  "removeVote",
   "bookmark",
   "post",
   "edit",
@@ -38,6 +40,10 @@ const InteractionSchema = new Schema<IInteraction>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    voteType: {
+      type: String,
+      enum: ["upvote", "downvote"],
     },
   },
   { timestamps: true }

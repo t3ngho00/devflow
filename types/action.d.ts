@@ -98,6 +98,7 @@ interface CreateInteractionParams {
     | "view"
     | "upvote"
     | "downvote"
+    | "removeVote"
     | "bookmark"
     | "post"
     | "edit"
@@ -106,6 +107,7 @@ interface CreateInteractionParams {
   targetId: string;
   targetType: "question" | "answer";
   targetAuthorId: string;
+  voteType?: "upvote" | "downvote";
 }
 
 interface UpdateReputationParams {

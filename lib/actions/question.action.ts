@@ -1,6 +1,7 @@
 "use server";
 import mongoose, { FilterQuery } from "mongoose";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { ZodError } from "zod";
 
 import { Answer, Collection, Vote } from "@/database";
@@ -21,6 +22,7 @@ import {
   IncrementViewsSchema,
   PaginatedSearchParamsSchema,
 } from "../validation";
+import { createInteraction } from "./interaction.action";
 export async function createQuestion(
   params: CreateQuestionParams
 ): Promise<ActionResponse<Question>> {
@@ -79,6 +81,16 @@ export async function createQuestion(
 
     // 4. Create the Tag-Question relationships (if you have a separate collection for this)
     // await TagQuestion.insertMany(newTagQuestionDocuments, { session });
+
+    // 5. Update reputation
+    after(async () => {
+      await createInteraction({
+        action: "post",
+        targetId: question._id.toString(),
+        targetType: "question",
+        targetAuthorId: userId as string,
+      });
+    });
 
     await session.commitTransaction();
 

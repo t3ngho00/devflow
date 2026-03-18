@@ -18,12 +18,8 @@ export async function createInteraction(
   if (actionContext instanceof Error)
     return handleError(actionContext) as ErrorResponse;
 
-  const {
-    action,
-    targetId,
-    targetType,
-    targetAuthorId,
-  } = actionContext.params!;
+  const { action, targetId, targetType, targetAuthorId, voteType } =
+    actionContext.params!;
   const actorId = actionContext.session?.user?.id;
 
   const session = await mongoose.startSession();
@@ -39,6 +35,7 @@ export async function createInteraction(
           targetId,
           targetType,
           targetAuthorId,
+          voteType,
         },
       ],
       { session }
@@ -63,7 +60,7 @@ export async function createInteraction(
 
 async function updateReputation(params: UpdateReputationParams) {
   const { interaction, session, actorId, targetAuthorId } = params;
-  const { action, targetType } = interaction;
+  const { action, targetType, voteType } = interaction;
 
   let performerPoints = 0;
   let authorPoints = 0;
@@ -76,6 +73,15 @@ async function updateReputation(params: UpdateReputationParams) {
     case "downvote":
       performerPoints = -1;
       authorPoints = -2;
+      break;
+    case "removeVote":
+      if (voteType === "upvote") {
+        performerPoints = -2;
+        authorPoints = -10;
+      } else if (voteType === "downvote") {
+        performerPoints = 1;
+        authorPoints = 2;
+      }
       break;
     case "post":
       authorPoints = targetType === "question" ? 5 : 10;

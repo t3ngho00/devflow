@@ -2,10 +2,12 @@
 
 import mongoose, { ClientSession } from "mongoose";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import ROUTES from "@/constants/ROUTES";
 import { Answer, Question, Vote } from "@/database";
 
+import { createInteraction } from "./interaction.action";
 import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import {
@@ -69,8 +71,16 @@ export async function createVote(
   if (!userId) return handleError(new Error("Unauthorized")) as ErrorResponse;
 
   const session = await mongoose.startSession();
-  
+  const interactionEvents: CreateInteractionParams[] = [];
+
   try {
+    const Model = targetType === "question" ? Question : Answer;
+
+    const contentDoc = await Model.findById(targetId).session(session);
+    if (!contentDoc) throw new Error("Content not found");
+
+    const targetAuthorId = contentDoc.author.toString();
+
     session.startTransaction();
     const existingVote = await Vote.findOne({
       author: userId,
@@ -86,9 +96,19 @@ export async function createVote(
           { targetId, targetType, voteType, change: -1 },
           session
         );
+
+        interactionEvents.push({
+          action: "removeVote",
+          targetId,
+          targetType,
+          targetAuthorId,
+          voteType,
+        });
       }
       // If the user has already voted with the *different voteType,
       else {
+        const previousVoteType = existingVote.voteType;
+
         await Vote.findByIdAndUpdate(
           existingVote._id,
           { voteType },
@@ -97,7 +117,7 @@ export async function createVote(
 
         // remove old vote
         await updateVoteCount(
-          { targetId, targetType, voteType: existingVote.voteType, change: -1 },
+          { targetId, targetType, voteType: previousVoteType, change: -1 },
           session
         );
 
@@ -106,6 +126,22 @@ export async function createVote(
           { targetId, targetType, voteType, change: 1 },
           session
         );
+
+        interactionEvents.push({
+          action: "removeVote",
+          targetId,
+          targetType,
+          targetAuthorId,
+          voteType: previousVoteType,
+        });
+
+        interactionEvents.push({
+          action: voteType,
+          targetId,
+          targetType,
+          targetAuthorId,
+          voteType,
+        });
       }
     } else {
       // If the user has not voted yet, create a new vote
@@ -126,9 +162,26 @@ export async function createVote(
         { targetId, targetType, voteType, change: 1 },
         session
       );
+
+      interactionEvents.push({
+        action: voteType,
+        targetId,
+        targetType,
+        targetAuthorId,
+        voteType,
+      });
     }
 
     await session.commitTransaction();
+
+    if (interactionEvents.length > 0) {
+      after(async () => {
+        for (const interactionEvent of interactionEvents) {
+          await createInteraction(interactionEvent);
+        }
+      });
+    }
+
     session.endSession();
     revalidatePath(ROUTES.QUESTION(targetId));
 
