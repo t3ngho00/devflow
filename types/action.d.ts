@@ -16,30 +16,39 @@ interface AuthCredentials {
   password: string;
 }
 
+interface UserIdParams {
+  userId: string;
+}
+
+interface QuestionIdParams {
+  questionId: string;
+}
+
+interface AnswerIdParams {
+  answerId: string;
+}
+
+interface TagIdParams {
+  tagId: string;
+}
+
 interface CreateQuestionParams {
   title: string;
   content: string;
   tags: string[];
 }
 
-interface EditQuestionParams extends CreateQuestionParams {
-  questionId: string;
-}
+interface EditQuestionParams extends CreateQuestionParams, QuestionIdParams {}
 
-interface GetQuestionParams {
-  questionId: string;
-}
+type GetQuestionParams = QuestionIdParams;
 
-interface GetTagQuestionsParams extends Omit<PaginatedSearchParams, "sort"> {
-  tagId: string;
-}
+interface GetTagQuestionsParams
+  extends Omit<PaginatedSearchParams, "sort">,
+    TagIdParams {}
 
-interface IncrementViewsParams {
-  questionId: string;
-}
+type IncrementViewsParams = QuestionIdParams;
 
-interface CreateAnswerParams {
-  questionId: string;
+interface CreateAnswerParams extends QuestionIdParams {
   content: string;
 }
 
@@ -64,34 +73,21 @@ interface HasVotedResponse {
   hasDownvoted: boolean;
 }
 
-interface CollectionBaseParams {
-  questionId: string;
-}
+type CollectionBaseParams = QuestionIdParams;
 
-interface GetUserWithStatsParams {
-  userId: string;
-}
+type GetUserParams = UserIdParams;
 
 interface GetUserQuestionsParams
-  extends Omit<PaginatedSearchParams, "query" | "sort"> {
-  userId: string;
-}
+  extends Omit<PaginatedSearchParams, "query" | "sort">,
+    UserIdParams {}
 
-interface GetUserAnswersParams extends PaginatedSearchParams {
-  userId: string;
-}
+interface GetUserAnswersParams extends PaginatedSearchParams, UserIdParams {}
 
-interface GetUserTagsParams {
-  userId: string;
-}
+type GetUserTagsParams = UserIdParams;
 
-interface DeleteQuestionParams {
-  questionId: string;
-}
+type DeleteQuestionParams = QuestionIdParams;
 
-interface DeleteAnswerParams {
-  answerId: string;
-}
+type DeleteAnswerParams = AnswerIdParams;
 
 interface CreateInteractionParams {
   action:
@@ -117,6 +113,4 @@ interface UpdateReputationParams {
   targetAuthorId: string;
 }
 
-interface GetUserStats {
-  userId: string;
-}
+type GetUserStatsParams = UserIdParams;

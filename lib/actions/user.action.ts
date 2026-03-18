@@ -76,7 +76,7 @@ export async function getUsers(
   }
 }
 
-export async function getUser(params: GetUserWithStatsParams): Promise<
+export async function getUser(params: GetUserParams): Promise<
   ActionResponse<{
     user: User;
   }>
@@ -245,7 +245,7 @@ export async function getUserTopTags(
   }
 }
 
-export async function getUserStats(params: GetUserStats): Promise<
+export async function getUserStats(params: GetUserStatsParams): Promise<
   ActionResponse<{
     totalQuestions: number;
     totalAnswers: number;
