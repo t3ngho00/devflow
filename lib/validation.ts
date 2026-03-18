@@ -178,3 +178,7 @@ export const CollectionBaseSchema = z.object({
 export const GetUserWithStatsSchema = z.object({
   userId: z.string().min(1, { message: "User ID is required" }),
 });
+
+export const GetUserQuestionsSchema = PaginatedSearchParamsSchema.extend({
+  userId: z.string().min(1, { message: "User ID is required" }),
+});

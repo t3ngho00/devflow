@@ -9,7 +9,7 @@ import { TabsList, TabsTrigger, TabsContent, Tabs } from "@/components/ui/tabs";
 import ProfileLink from "@/components/user/ProfileLink";
 import Stats from "@/components/user/Stats";
 import UserAvatar from "@/components/UserAvatar";
-import { getUser } from "@/lib/actions/user.action";
+import { getUserWithStats } from "@/lib/actions/user.action";
 
 const Profile = async ({ params }: RouteParams) => {
   const { id } = await params;
@@ -17,7 +17,7 @@ const Profile = async ({ params }: RouteParams) => {
   if (!id) return notFound();
 
   const loggedInUser = await auth();
-  const { success, data, error } = await getUser({ userId: id });
+  const { success, data, error } = await getUserWithStats({ userId: id });
 
   if (!success || !data)
     return (
