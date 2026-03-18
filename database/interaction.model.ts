@@ -1,26 +1,42 @@
 import { Schema, models, model, Document, Types } from "mongoose";
 
 export interface IInteraction {
-  user: Types.ObjectId;
+  actorId: Types.ObjectId;
   action: string;
-  actionId: Types.ObjectId;
-  actionType: "Question" | "Answer";
+  targetId: Types.ObjectId;
+  targetType: "question" | "answer";
+  targetAuthorId: Types.ObjectId;
 }
+
+export const InteractionActionEnums = [
+  "view",
+  "upvote",
+  "downvote",
+  "bookmark",
+  "post",
+  "edit",
+  "delete",
+  "search",
+] as const;
 
 export interface IInteractionDoc extends IInteraction, Document {}
 
 const InteractionSchema = new Schema<IInteraction>(
   {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    action: { type: String, required: true },
-    actionId: {
+    actorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    action: { type: String, required: true, enum: InteractionActionEnums },
+    targetId: {
       type: Schema.Types.ObjectId,
       required: true,
-      refPath: "actionType",
     },
-    actionType: {
+    targetType: {
       type: String,
-      enum: ["Question", "Answer"],
+      enum: ["question", "answer"],
+      required: true,
+    },
+    targetAuthorId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
   },
