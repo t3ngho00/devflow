@@ -7,6 +7,7 @@ import { after } from "next/server";
 import ROUTES from "@/constants/ROUTES";
 import { Answer, Question, Vote } from "@/database";
 
+import { createInteraction } from "./interaction.action";
 import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import {
@@ -14,7 +15,6 @@ import {
   HasVotedSchema,
   UpdateVoteCountSchema,
 } from "../validation";
-import { createInteraction } from "./interaction.action";
 
 export async function hasVoted(
   params: HasVotedParams
@@ -58,7 +58,9 @@ export async function hasVoted(
   }
 }
 
-export async function createVote(params: CreateVoteParams): Promise<ActionResponse> {
+export async function createVote(
+  params: CreateVoteParams
+): Promise<ActionResponse> {
   const validationResult = await prepareActionContext({
     params,
     schema: CreateVoteSchema,

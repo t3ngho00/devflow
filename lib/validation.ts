@@ -211,6 +211,13 @@ export const CreateInteractionSchema = z.object({
   voteType: z.enum(["upvote", "downvote"]).optional(),
 });
 
-export const GetuserStats = z.object({
+export const GetuserStatsSchema = z.object({
   userId: z.string().min(1, { message: "User ID is required" }),
+});
+
+export const GetRecommendationSchema = z.object({
+  userId: z.string().min(1, { message: "User ID is required" }).optional(),
+  query: z.string().optional(),
+  skip: z.number().int().min(0, { message: "Skip cannot be negative." }),
+  limit: z.number().int().min(1, { message: "Limit must be at least 1." }),
 });

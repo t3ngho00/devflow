@@ -12,9 +12,12 @@ import { NotFoundError } from "../http-errors";
 import { SignInSchema, SignUpSchema } from "../validation";
 
 export async function signInWithCredentials(
-  params: Pick<AuthCredentials,  "email" | "password">
+  params: Pick<AuthCredentials, "email" | "password">
 ): Promise<ActionResponse> {
-  const validationResult = await prepareActionContext({ params, schema: SignInSchema });
+  const validationResult = await prepareActionContext({
+    params,
+    schema: SignInSchema,
+  });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
@@ -52,7 +55,10 @@ export async function signInWithCredentials(
 export async function signUpWithCredentials(
   params: AuthCredentials
 ): Promise<ActionResponse> {
-  const validationResult = await prepareActionContext({ params, schema: SignUpSchema });
+  const validationResult = await prepareActionContext({
+    params,
+    schema: SignUpSchema,
+  });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
@@ -61,7 +67,7 @@ export async function signUpWithCredentials(
   const { name, username, email, password } = validationResult.params!;
 
   const session = await mongoose.startSession();
-  
+
   try {
     session.startTransaction();
     const existingUser = await User.findOne({ email }).session(session);

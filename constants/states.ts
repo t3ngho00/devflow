@@ -29,6 +29,15 @@ export const EMPTY_QUESTION = {
   },
 };
 
+export const EMPTY_RECOMMENDATION = {
+  title: "Login Required",
+  message: "You need to be logged in to see recommendations",
+  button: {
+    text: "Sign In",
+    href: ROUTES.SIGN_IN,
+  },
+};
+
 export const EMPTY_TAGS = {
   title: "No Tags Found",
   message: "The tag cloud is empty. Add some keywords to make it rain.",
@@ -61,5 +70,5 @@ export const EMPTY_USERS = {
 
 export const EMPTY_COLLECTION = {
   title: "No Question or Answer found",
-  message: "Let's go find something worth saving"
-}
+  message: "Let's go find something worth saving",
+};

@@ -1,10 +1,10 @@
 "use server";
-import mongoose, { FilterQuery } from "mongoose";
+import mongoose, { FilterQuery, Types } from "mongoose";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { ZodError } from "zod";
 
-import { Answer, Collection, Vote } from "@/database";
+import { auth } from "@/auth";
+import { Answer, Collection, Interaction, Vote } from "@/database";
 import Question, { IQuestionDoc } from "@/database/question.model";
 import TagQuestion from "@/database/tag-question.model";
 import Tag, { ITagDoc } from "@/database/tag.model";
@@ -19,6 +19,7 @@ import {
   DeleteQuestionSchema,
   EditQuestionSchema,
   GetQuestionSchema,
+  GetRecommendationSchema,
   IncrementViewsSchema,
   PaginatedSearchParamsSchema,
 } from "../validation";
@@ -26,13 +27,15 @@ import { createInteraction } from "./interaction.action";
 
 export async function getQuestions(
   params: PaginatedSearchParams
-): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+): Promise<
+  ActionResponse<{ questions: Question[]; isNext: boolean; message?: string }>
+> {
   const validationResult = await prepareActionContext({
     params,
     schema: PaginatedSearchParamsSchema,
   });
 
-  if (validationResult instanceof ZodError) {
+  if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
   }
 
@@ -44,9 +47,15 @@ export async function getQuestions(
   // filter
   const filterQuery: FilterQuery<typeof Question> = {};
 
-  // skipping the recommended sort for now, will implement later when we track users
   if (sort === "recommended") {
-    return { success: true, data: { questions: [], isNext: false } };
+    const session = await auth();
+
+    return getRecommendedQuestions({
+      userId: session?.user?.id,
+      query,
+      skip,
+      limit,
+    });
   }
 
   // query (case insensitive)
@@ -453,6 +462,97 @@ export async function deleteQuestion(
     await session.abortTransaction();
     session.endSession();
 
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getRecommendedQuestions(
+  params: GetRecommendationParams
+): Promise<
+  ActionResponse<{ questions: Question[]; isNext: boolean; message?: string }>
+> {
+  const validationResult = await prepareActionContext({
+    params,
+    schema: GetRecommendationSchema,
+  });
+
+  if (validationResult instanceof Error)
+    return handleError(validationResult) as ErrorResponse;
+
+  const { userId, query, skip, limit } = validationResult.params!;
+
+  if (!userId) {
+    return {
+      success: true,
+      data: {
+        questions: [],
+        isNext: false,
+        message: "You need to be logged in to see recommendations",
+      },
+    };
+  }
+
+  try {
+    const interactions = await Interaction.find({
+      user: new Types.ObjectId(userId),
+      targetType: "question",
+      action: { $in: ["view", "upvote", "bookmark", "post"] },
+    })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    // Get all the question id
+    const interactedQuestionIds = interactions.map(
+      (interaction) => interaction.targetId
+    );
+
+    // Using the ids, get all the question tags
+    const interactedQuestions = await Question.find({
+      _id: { $in: interactedQuestionIds },
+    }).select("tags");
+
+    // Flatten the tags then make the list unique
+    const allTagIds = interactedQuestions.flatMap((q) =>
+      q.tags.map((tag: Types.ObjectId) => tag.toString())
+    );
+
+    const uniqueTagIds = [...new Set(allTagIds)];
+
+    // Build the query to search for questions based on the unique tags
+    // Exclude: own questons and except viewed questions
+    const recommendedQuery: FilterQuery<typeof Question> = {
+      _id: { $nin: interactedQuestionIds },
+      author: { $ne: new Types.ObjectId(userId) },
+      tags: { $in: uniqueTagIds.map((id) => new Types.ObjectId(id)) },
+    };
+
+    if (query) {
+      recommendedQuery.$or = [
+        { title: { $regex: query, $options: "i" } },
+        { content: { $regex: query, $options: "i" } },
+      ];
+    }
+
+    // Finally retrieve the recommended questions
+    const total = await Question.countDocuments(recommendedQuery);
+
+    const questions = await Question.find(recommendedQuery)
+      .populate("tags", "name")
+      .populate("author", "name image")
+      .sort({ upvotes: -1, views: -1 }) // prioritizing engagement
+      .skip(skip)
+      .limit(limit)
+      .lean<Question[]>();
+
+    return {
+      success: true,
+      data: {
+        questions: toPlainObject(questions),
+        isNext: total > skip + questions.length,
+      },
+    };
+  } catch (error) {
     return handleError(error) as ErrorResponse;
   }
 }

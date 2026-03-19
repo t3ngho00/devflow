@@ -9,7 +9,7 @@ import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import { HomePageFilters } from "@/constants/filters";
 import ROUTES from "@/constants/ROUTES";
-import { EMPTY_QUESTION } from "@/constants/states";
+import { EMPTY_QUESTION, EMPTY_RECOMMENDATION } from "@/constants/states";
 import { getQuestions } from "@/lib/actions/question.action";
 
 interface SearchParams {
@@ -26,7 +26,13 @@ export default async function Home({ searchParams }: SearchParams) {
     sort: sort || "",
   });
 
-  const { questions, isNext } = data || {};
+  const { questions, isNext, message } = data || {};
+
+  const emptyState =
+    sort === "recommended" && message
+      ? { ...EMPTY_RECOMMENDATION, message }
+      : EMPTY_QUESTION;
+
   return (
     <>
       <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
@@ -56,7 +62,7 @@ export default async function Home({ searchParams }: SearchParams) {
         success={success}
         error={error}
         data={questions}
-        empty={EMPTY_QUESTION}
+        empty={emptyState}
         render={(questions) =>
           questions.map((question) => (
             <div
