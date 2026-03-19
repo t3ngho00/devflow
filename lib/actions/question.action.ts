@@ -83,15 +83,16 @@ export async function getQuestions(
   }
 
   try {
-    const totalQuestions = await Question.countDocuments(filterQuery);
-
-    const questions = await Question.find(filterQuery)
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .lean<Question[]>()
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit);
+    const [totalQuestions, questions] = await Promise.all([
+      Question.countDocuments(filterQuery),
+      Question.find(filterQuery)
+        .populate("tags", "name")
+        .populate("author", "name image")
+        .lean<Question[]>()
+        .sort(sortCriteria)
+        .skip(skip)
+        .limit(limit),
+    ]);
 
     const isNext = totalQuestions > skip + questions.length;
 
@@ -535,15 +536,16 @@ export async function getRecommendedQuestions(
     }
 
     // Finally retrieve the recommended questions
-    const total = await Question.countDocuments(recommendedQuery);
-
-    const questions = await Question.find(recommendedQuery)
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .sort({ upvotes: -1, views: -1 }) // prioritizing engagement
-      .skip(skip)
-      .limit(limit)
-      .lean<Question[]>();
+    const [total, questions] = await Promise.all([
+      Question.countDocuments(recommendedQuery),
+      Question.find(recommendedQuery)
+        .populate("tags", "name")
+        .populate("author", "name image")
+        .sort({ upvotes: -1, views: -1 }) // prioritizing engagement
+        .skip(skip)
+        .limit(limit)
+        .lean<Question[]>(),
+    ]);
 
     return {
       success: true,

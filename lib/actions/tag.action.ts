@@ -55,13 +55,14 @@ export const getTags = async (
   }
 
   try {
-    const totalTags = await Tag.countDocuments(filterQuery);
-
-    const tags = await Tag.find(filterQuery)
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit)
-      .lean<Tag[]>();
+    const [totalTags, tags] = await Promise.all([
+      Tag.countDocuments(filterQuery),
+      Tag.find(filterQuery)
+        .sort(sortCriteria)
+        .skip(skip)
+        .limit(limit)
+        .lean<Tag[]>(),
+    ]);
 
     const isNext = totalTags > skip + tags.length;
 
@@ -108,17 +109,18 @@ export const getTagQuestions = async (
       filterQuery.title = [{ $regex: query, $options: "i" }];
     }
 
-    const totalQuestions = await Question.countDocuments(filterQuery);
-
-    const questions = await Question.find(filterQuery)
-      .select("_id title views answers upvotes downvotes author createdAt")
-      .populate([
-        { path: "author", select: "name image" },
-        { path: "tags", select: "name" },
-      ])
-      .skip(skip)
-      .limit(limit)
-      .lean<Question[]>();
+    const [totalQuestions, questions] = await Promise.all([
+      Question.countDocuments(filterQuery),
+      Question.find(filterQuery)
+        .select("_id title views answers upvotes downvotes author createdAt")
+        .populate([
+          { path: "author", select: "name image" },
+          { path: "tags", select: "name" },
+        ])
+        .skip(skip)
+        .limit(limit)
+        .lean<Question[]>(),
+    ]);
 
     const isNext = totalQuestions > skip + questions.length;
 

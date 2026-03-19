@@ -128,19 +128,18 @@ export async function getSavedQuestion(
       },
     ];
 
-    const [totalCount] = await Collection.aggregate([
-      ...filterStages,
-      { $count: "count" },
+    const [totalCountResult, questions] = await Promise.all([
+      Collection.aggregate([...filterStages, { $count: "count" }]),
+      Collection.aggregate([
+        ...filterStages,
+        { $sort: sortCriteria },
+        { $skip: skip },
+        { $limit: limit },
+        { $project: { question: 1, author: 1 } },
+      ]),
     ]);
-    const total = totalCount?.count || 0;
 
-    const questions = await Collection.aggregate([
-      ...filterStages,
-      { $sort: sortCriteria },
-      { $skip: skip },
-      { $limit: limit },
-      { $project: { question: 1, author: 1 } },
-    ]);
+    const total = totalCountResult[0]?.count || 0;
 
     const isNext = total > skip + questions.length;
 
@@ -173,13 +172,15 @@ export async function toggleSaveQuestion(
   const userId = validationResult.session?.user?.id;
 
   try {
-    const question = await Question.exists({ _id: questionId });
-    if (!question) throw new Error("Question not found");
+    const [question, collection] = await Promise.all([
+      Question.exists({ _id: questionId }),
+      Collection.findOne({
+        author: userId,
+        question: questionId,
+      }),
+    ]);
 
-    const collection = await Collection.findOne({
-      author: userId,
-      question: questionId,
-    });
+    if (!question) throw new Error("Question not found");
 
     if (collection) {
       await Collection.deleteOne({ _id: collection._id });

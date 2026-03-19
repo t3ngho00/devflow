@@ -26,14 +26,15 @@ export async function signInWithCredentials(
   const { email, password } = validationResult.params!;
 
   try {
-    const existingUser = await User.findOne({ email });
+    const [existingUser, existingAccount] = await Promise.all([
+      User.findOne({ email }),
+      Account.findOne({
+        provider: "credentials",
+        providerAccountId: email,
+      }),
+    ]);
 
     if (!existingUser) throw new NotFoundError("User");
-
-    const existingAccount = await Account.findOne({
-      provider: "credentials",
-      providerAccountId: email,
-    });
 
     if (!existingAccount) throw new NotFoundError("Account");
 

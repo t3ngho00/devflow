@@ -57,13 +57,14 @@ export async function getUsers(
   }
 
   try {
-    const totalUsers = await User.countDocuments(filterQuery);
-
-    const users = await User.find(filterQuery)
-      .lean<User[]>()
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit);
+    const [totalUsers, users] = await Promise.all([
+      User.countDocuments(filterQuery),
+      User.find(filterQuery)
+        .lean<User[]>()
+        .sort(sortCriteria)
+        .skip(skip)
+        .limit(limit),
+    ]);
 
     const isNext = totalUsers > skip + users.length;
 
@@ -130,14 +131,15 @@ export async function getUserQuestions(params: GetUserQuestionsParams): Promise<
     const user = await User.findById(userId).lean<User>();
     if (!user) return handleError(new Error("User not found")) as ErrorResponse;
 
-    const totalQuestions = await Question.countDocuments({ author: userId });
-
-    const questions = await Question.find({ author: userId })
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .skip(skip)
-      .limit(limit)
-      .lean<Question[]>();
+    const [totalQuestions, questions] = await Promise.all([
+      Question.countDocuments({ author: userId }),
+      Question.find({ author: userId })
+        .populate("tags", "name")
+        .populate("author", "name image")
+        .skip(skip)
+        .limit(limit)
+        .lean<Question[]>(),
+    ]);
 
     const isNext = totalQuestions > skip + questions.length;
 
@@ -170,12 +172,14 @@ export async function getUsersAnswers(
   const limit = pageSize;
 
   try {
-    const totalAnswers = await Answer.countDocuments({ author: userId });
-    const answers = await Answer.find({ author: userId })
-      .populate("author", "_id name image")
-      .skip(skip)
-      .limit(limit)
-      .lean<Answer[]>();
+    const [totalAnswers, answers] = await Promise.all([
+      Answer.countDocuments({ author: userId }),
+      Answer.find({ author: userId })
+        .populate("author", "_id name image")
+        .skip(skip)
+        .limit(limit)
+        .lean<Answer[]>(),
+    ]);
 
     const isNext = totalAnswers > skip + answers.length;
 
@@ -266,28 +270,39 @@ export async function getUserStats(params: GetUserStatsParams): Promise<
 
     if (!user) return handleError(new Error("User not found")) as ErrorResponse;
 
-    const [questionStats] = await Question.aggregate([
-      { $match: { author: new Types.ObjectId(userId) } },
-      {
-        $group: {
-          _id: null,
-          count: { $sum: 1 },
-          upvotes: { $sum: "$upvotes" },
-          views: { $sum: "$views" },
+    const [questionStatsResult, answerStatsResult] = await Promise.all([
+      Question.aggregate([
+        { $match: { author: new Types.ObjectId(userId) } },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+            upvotes: { $sum: "$upvotes" },
+            views: { $sum: "$views" },
+          },
         },
-      },
+      ]),
+      Answer.aggregate([
+        { $match: { author: new Types.ObjectId(userId) } },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+            upvotes: { $sum: "$upvotes" },
+          },
+        },
+      ]),
     ]);
 
-    const [answerStats] = await Answer.aggregate([
-      { $match: { author: new Types.ObjectId(userId) } },
-      {
-        $group: {
-          _id: null,
-          count: { $sum: 1 },
-          upvotes: { $sum: "$upvotes" },
-        },
-      },
-    ]);
+    const questionStats = questionStatsResult[0] ?? {
+      count: 0,
+      upvotes: 0,
+      views: 0,
+    };
+    const answerStats = answerStatsResult[0] ?? {
+      count: 0,
+      upvotes: 0,
+    };
 
     const badgeCounts = assignBadges({
       criteria: [
