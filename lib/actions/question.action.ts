@@ -23,6 +23,153 @@ import {
   PaginatedSearchParamsSchema,
 } from "../validation";
 import { createInteraction } from "./interaction.action";
+
+export async function getQuestions(
+  params: PaginatedSearchParams
+): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+  const validationResult = await prepareActionContext({
+    params,
+    schema: PaginatedSearchParamsSchema,
+  });
+
+  if (validationResult instanceof ZodError) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  // basic page options
+  const { page = 1, pageSize = 10, query, sort } = params;
+  const skip = (Number(page) - 1) * Number(pageSize);
+  const limit = Number(pageSize);
+
+  // filter
+  const filterQuery: FilterQuery<typeof Question> = {};
+
+  // skipping the recommended sort for now, will implement later when we track users
+  if (sort === "recommended") {
+    return { success: true, data: { questions: [], isNext: false } };
+  }
+
+  // query (case insensitive)
+  if (query) {
+    filterQuery.$or = [
+      { title: { $regex: new RegExp(query, "i") } },
+      { content: { $regex: new RegExp(query, "i") } },
+    ];
+  }
+
+  // sort
+  let sortCriteria = {};
+
+  switch (sort) {
+    case "newest":
+      sortCriteria = { createdAt: -1 };
+      break;
+    case "popular":
+      sortCriteria = { upvotes: -1 };
+      break;
+    case "unanswered":
+      filterQuery.answers = 0;
+      sortCriteria = { createdAt: -1 };
+      break;
+  }
+
+  try {
+    const totalQuestions = await Question.countDocuments(filterQuery);
+
+    const questions = await Question.find(filterQuery)
+      .populate("tags", "name")
+      .populate("author", "name image")
+      .lean<Question[]>()
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(limit);
+
+    const isNext = totalQuestions > skip + questions.length;
+
+    return {
+      success: true,
+      data: { questions: toPlainObject(questions), isNext },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getQuestion(
+  params: GetQuestionParams
+): Promise<ActionResponse<Question>> {
+  const validationResult = await prepareActionContext({
+    params,
+    schema: GetQuestionSchema,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { questionId } = validationResult.params!;
+
+  try {
+    const question = await Question.findById(questionId)
+      .populate("tags")
+      .populate("author", "_id name image")
+      .lean<Question>();
+
+    if (!question) {
+      throw new Error("Question not found");
+    }
+
+    return { success: true, data: toPlainObject(question) };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getTopQuestions(): Promise<ActionResponse<Question[]>> {
+  try {
+    await dbConnect();
+
+    const questions = await Question.find()
+      .sort({ views: -1, upvotes: -1 })
+      .limit(5)
+      .lean<Question[]>();
+
+    return {
+      success: true,
+      data: toPlainObject(questions),
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function incrementViews(
+  params: IncrementViewsParams
+): Promise<ActionResponse<{ views: number }>> {
+  const validationResult = await prepareActionContext({
+    params,
+    schema: IncrementViewsSchema,
+  });
+
+  if (validationResult instanceof Error)
+    return handleError(validationResult) as ErrorResponse;
+
+  const { questionId } = validationResult.params!;
+
+  try {
+    const question = await Question.findById(questionId);
+
+    if (!question) throw new Error("Question not found");
+
+    question.views += 1;
+    await question.save();
+
+    return { success: true, data: { views: question.views } };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
 export async function createQuestion(
   params: CreateQuestionParams
 ): Promise<ActionResponse<Question>> {
@@ -225,150 +372,6 @@ export async function editQuestion(
     return handleError(error) as ErrorResponse;
   } finally {
     await session.endSession();
-  }
-}
-
-export async function getQuestion(
-  params: GetQuestionParams
-): Promise<ActionResponse<Question>> {
-  const validationResult = await prepareActionContext({
-    params,
-    schema: GetQuestionSchema,
-  });
-
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  const { questionId } = validationResult.params!;
-
-  try {
-    const question = await Question.findById(questionId)
-      .populate("tags")
-      .populate("author", "_id name image")
-      .lean<Question>();
-
-    if (!question) {
-      throw new Error("Question not found");
-    }
-
-    return { success: true, data: toPlainObject(question) };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
-
-export async function getQuestions(
-  params: PaginatedSearchParams
-): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
-  const validationResult = await prepareActionContext({
-    params,
-    schema: PaginatedSearchParamsSchema,
-  });
-
-  if (validationResult instanceof ZodError) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  // basic page options
-  const { page = 1, pageSize = 10, query, sort } = params;
-  const skip = (Number(page) - 1) * Number(pageSize);
-  const limit = Number(pageSize);
-
-  // filter
-  const filterQuery: FilterQuery<typeof Question> = {};
-
-  // skipping the recommended sort for now, will implement later when we track users
-  if (sort === "recommended") {
-    return { success: true, data: { questions: [], isNext: false } };
-  }
-
-  // query (case insensitive)
-  if (query) {
-    filterQuery.$or = [
-      { title: { $regex: new RegExp(query, "i") } },
-      { content: { $regex: new RegExp(query, "i") } },
-    ];
-  }
-
-  // sort
-  let sortCriteria = {};
-
-  switch (sort) {
-    case "newest":
-      sortCriteria = { createdAt: -1 };
-      break;
-    case "popular":
-      sortCriteria = { upvotes: -1 };
-      break;
-    case "unanswered":
-      filterQuery.answers = 0;
-      sortCriteria = { createdAt: -1 };
-      break;
-  }
-
-  try {
-    const totalQuestions = await Question.countDocuments(filterQuery);
-
-    const questions = await Question.find(filterQuery)
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .lean<Question[]>()
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit);
-
-    const isNext = totalQuestions > skip + questions.length;
-
-    return {
-      success: true,
-      data: { questions: toPlainObject(questions), isNext },
-    };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
-
-export async function incrementViews(
-  params: IncrementViewsParams
-): Promise<ActionResponse<{ views: number }>> {
-  const validationResult = await prepareActionContext({
-    params,
-    schema: IncrementViewsSchema,
-  });
-
-  if (validationResult instanceof Error)
-    return handleError(validationResult) as ErrorResponse;
-
-  const { questionId } = validationResult.params!;
-  try {
-    const question = await Question.findById(questionId);
-
-    if (!question) throw new Error("Question not found");
-
-    question.views += 1;
-    await question.save();
-
-    return { success: true, data: { views: question.views } };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
-
-export async function getTopQuestions(): Promise<ActionResponse<Question[]>> {
-  try {
-    await dbConnect();
-
-    const questions = await Question.find()
-      .sort({ views: -1, upvotes: -1 })
-      .limit(5)
-      .lean<Question[]>();
-    return {
-      success: true,
-      data: toPlainObject(questions),
-    };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
   }
 }
 

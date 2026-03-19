@@ -18,66 +18,6 @@ import {
 } from "../validation";
 import { createInteraction } from "./interaction.action";
 
-export async function createAnswer(
-  params: CreateAnswerParams
-): Promise<ActionResponse<IAnswerDoc>> {
-  const validationResult = await prepareActionContext({
-    params,
-    schema: AnswerServerSchema,
-    authorize: true,
-  });
-
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  const { content, questionId } = validationResult.params!;
-  const userId = validationResult.session!.user!.id;
-
-  const session = await mongoose.startSession();
-
-  try {
-    session.startTransaction();
-    const question = await Question.findById(questionId);
-
-    if (!question) throw new Error("Question not found");
-
-    const [newAnswer] = await Answer.create(
-      [{ question: questionId, content, author: userId }],
-      { session }
-    );
-
-    if (!newAnswer) throw new Error("Failed to create answer");
-
-    question.answers += 1;
-    await question.save({ session });
-
-    after(async () => {
-      await createInteraction({
-        action: "post",
-        targetId: newAnswer._id.toString(),
-        targetType: "answer",
-        targetAuthorId: userId as string,
-      });
-    });
-
-    await session.commitTransaction();
-
-    revalidatePath(ROUTES.QUESTION(questionId));
-
-    return {
-      success: true,
-      data: toPlainObject(newAnswer),
-      status: 201,
-    };
-  } catch (error) {
-    await session.abortTransaction();
-    return handleError(error) as ErrorResponse;
-  } finally {
-    session.endSession();
-  }
-}
-
 export async function getAnswers(params: GetAnswersParams): Promise<
   ActionResponse<{
     answers: Answer[];
@@ -137,6 +77,66 @@ export async function getAnswers(params: GetAnswersParams): Promise<
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function createAnswer(
+  params: CreateAnswerParams
+): Promise<ActionResponse<IAnswerDoc>> {
+  const validationResult = await prepareActionContext({
+    params,
+    schema: AnswerServerSchema,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { content, questionId } = validationResult.params!;
+  const userId = validationResult.session!.user!.id;
+
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+    const question = await Question.findById(questionId);
+
+    if (!question) throw new Error("Question not found");
+
+    const [newAnswer] = await Answer.create(
+      [{ question: questionId, content, author: userId }],
+      { session }
+    );
+
+    if (!newAnswer) throw new Error("Failed to create answer");
+
+    question.answers += 1;
+    await question.save({ session });
+
+    after(async () => {
+      await createInteraction({
+        action: "post",
+        targetId: newAnswer._id.toString(),
+        targetType: "answer",
+        targetAuthorId: userId as string,
+      });
+    });
+
+    await session.commitTransaction();
+
+    revalidatePath(ROUTES.QUESTION(questionId));
+
+    return {
+      success: true,
+      data: toPlainObject(newAnswer),
+      status: 201,
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    return handleError(error) as ErrorResponse;
+  } finally {
+    session.endSession();
   }
 }
 

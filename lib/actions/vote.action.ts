@@ -7,7 +7,6 @@ import { after } from "next/server";
 import ROUTES from "@/constants/ROUTES";
 import { Answer, Question, Vote } from "@/database";
 
-import { createInteraction } from "./interaction.action";
 import prepareActionContext from "../handlers/action";
 import handleError from "../handlers/error";
 import {
@@ -15,46 +14,51 @@ import {
   HasVotedSchema,
   UpdateVoteCountSchema,
 } from "../validation";
+import { createInteraction } from "./interaction.action";
 
-export async function updateVoteCount(
-  params: UpdateVoteCountParams,
-  session?: ClientSession
-): Promise<ActionResponse> {
+export async function hasVoted(
+  params: HasVotedParams
+): Promise<ActionResponse<HasVotedResponse>> {
   const validationResult = await prepareActionContext({
     params,
-    schema: UpdateVoteCountSchema,
+    schema: HasVotedSchema,
+    authorize: true,
   });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const { targetId, targetType, voteType, change } = validationResult.params!;
-
-  const Model = targetType === "question" ? Question : Answer;
-  const voteField = voteType === "upvote" ? "upvotes" : "downvotes";
+  const { targetId, targetType } = validationResult.params!;
+  const userId = validationResult.session?.user?.id;
 
   try {
-    const result = await Model.findByIdAndUpdate(
-      targetId,
-      { $inc: { [voteField]: change } },
-      { new: true, session }
-    );
+    const vote = await Vote.findOne({
+      author: userId,
+      actionId: targetId,
+      actionType: targetType,
+    });
 
-    if (!result)
-      return handleError(
-        new Error("Failed to update vote count")
-      ) as ErrorResponse;
+    if (!vote) {
+      return {
+        success: false,
+        data: { hasUpvoted: false, hasDownvoted: false },
+      };
+    }
 
-    return { success: true };
+    return {
+      success: true,
+      data: {
+        hasUpvoted: vote.voteType === "upvote",
+        hasDownvoted: vote.voteType === "downvote",
+      },
+    };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
 }
 
-export async function createVote(
-  params: CreateVoteParams
-): Promise<ActionResponse> {
+export async function createVote(params: CreateVoteParams): Promise<ActionResponse> {
   const validationResult = await prepareActionContext({
     params,
     schema: CreateVoteSchema,
@@ -193,43 +197,37 @@ export async function createVote(
   }
 }
 
-export async function hasVoted(
-  params: HasVotedParams
-): Promise<ActionResponse<HasVotedResponse>> {
+export async function updateVoteCount(
+  params: UpdateVoteCountParams,
+  session?: ClientSession
+): Promise<ActionResponse> {
   const validationResult = await prepareActionContext({
     params,
-    schema: HasVotedSchema,
-    authorize: true,
+    schema: UpdateVoteCountSchema,
   });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const { targetId, targetType } = validationResult.params!;
-  const userId = validationResult.session?.user?.id;
+  const { targetId, targetType, voteType, change } = validationResult.params!;
+
+  const Model = targetType === "question" ? Question : Answer;
+  const voteField = voteType === "upvote" ? "upvotes" : "downvotes";
 
   try {
-    const vote = await Vote.findOne({
-      author: userId,
-      actionId: targetId,
-      actionType: targetType,
-    });
+    const result = await Model.findByIdAndUpdate(
+      targetId,
+      { $inc: { [voteField]: change } },
+      { new: true, session }
+    );
 
-    if (!vote) {
-      return {
-        success: false,
-        data: { hasUpvoted: false, hasDownvoted: false },
-      };
-    }
+    if (!result)
+      return handleError(
+        new Error("Failed to update vote count")
+      ) as ErrorResponse;
 
-    return {
-      success: true,
-      data: {
-        hasUpvoted: vote.voteType === "upvote",
-        hasDownvoted: vote.voteType === "downvote",
-      },
-    };
+    return { success: true };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
