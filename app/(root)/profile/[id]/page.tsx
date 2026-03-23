@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import React from "react";
 
@@ -22,6 +23,27 @@ import {
   getUser,
   getUserStats,
 } from "@/lib/actions/user.action";
+
+export async function generateMetadata({
+  params,
+}: RouteParams): Promise<Metadata> {
+  const { id } = await params;
+
+  const { success, data } = await getUser({ userId: id });
+
+  if (!success || !data?.user) {
+    return {
+      title: "Profile",
+      description: "Developer profile on DevFlow.",
+    };
+  }
+
+  return {
+    title: `${data.user.name} (@${data.user.username})`,
+    description:
+      data.user.bio?.slice(0, 140) || "Developer profile on DevFlow.",
+  };
+}
 
 const Profile = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;

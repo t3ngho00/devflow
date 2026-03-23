@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import UserCard from "@/components/cards/UserCard";
 import DataRenderer from "@/components/DataRenderer";
 import CommonFilter from "@/components/filters/CommonFilter";
@@ -6,6 +8,12 @@ import LocalSearch from "@/components/search/LocalSearch";
 import { UserFilters } from "@/constants/filters";
 import { EMPTY_USERS } from "@/constants/states";
 import { getUsers } from "@/lib/actions/user.action";
+
+export const metadata: Metadata = {
+  title: "Community",
+  description:
+    "Discover developers in the DevFlow community and explore their profiles.",
+};
 
 export default async function CommunityPage({ searchParams }: RouteParams) {
   const { page, pageSize, query, sort } = await searchParams;

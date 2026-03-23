@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
 import Pagination from "@/components/Pagination";
@@ -5,6 +7,17 @@ import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import { EMPTY_QUESTION } from "@/constants/states";
 import { getTagQuestions } from "@/lib/actions/tag.action";
+
+export async function generateMetadata({
+  params,
+}: RouteParams): Promise<Metadata> {
+  const { id } = await params;
+
+  return {
+    title: `Tag: ${id}`,
+    description: `Questions tagged with ${id} on DevFlow.`,
+  };
+}
 
 const page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;

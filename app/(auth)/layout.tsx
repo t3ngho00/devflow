@@ -1,9 +1,13 @@
-
+import type { Metadata } from "next";
 import Image from "next/image";
 import { ReactNode } from "react";
 
 import SocialAuthForm from "@/components/forms/SocialAuthForm";
 
+export const metadata: Metadata = {
+  title: "Authentication",
+  description: "Sign in or create a DevFlow account.",
+};
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
   return (

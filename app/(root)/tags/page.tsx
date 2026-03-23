@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import TagCard from "@/components/cards/TagCard";
 import DataRenderer from "@/components/DataRenderer";
 import CommonFilter from "@/components/filters/CommonFilter";
@@ -6,6 +8,11 @@ import LocalSearch from "@/components/search/LocalSearch";
 import { TagFilters } from "@/constants/filters";
 import { EMPTY_TAGS } from "@/constants/states";
 import { getTags } from "@/lib/actions/tag.action";
+
+export const metadata: Metadata = {
+  title: "Tags",
+  description: "Browse topics and technologies discussed on DevFlow.",
+};
 
 export default async function TagsPage({ searchParams }: RouteParams) {
   const { page, pageSize, query, sort } = await searchParams;

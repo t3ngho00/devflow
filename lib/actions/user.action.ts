@@ -1,6 +1,7 @@
 "use server";
 
 import { FilterQuery, PipelineStage, Types } from "mongoose";
+import { cache } from "react";
 
 import { Answer, Question, User } from "@/database";
 
@@ -77,7 +78,9 @@ export async function getUsers(
   }
 }
 
-export async function getUser(params: GetUserParams): Promise<
+export const getUser = cache(async function getUser(
+  params: GetUserParams
+): Promise<
   ActionResponse<{
     user: User;
   }>
@@ -105,7 +108,7 @@ export async function getUser(params: GetUserParams): Promise<
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
-}
+});
 
 export async function getUserQuestions(params: GetUserQuestionsParams): Promise<
   ActionResponse<{

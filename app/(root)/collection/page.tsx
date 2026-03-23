@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
@@ -10,6 +11,11 @@ import { CollectionFilters } from "@/constants/filters";
 import ROUTES from "@/constants/ROUTES";
 import { EMPTY_COLLECTION } from "@/constants/states";
 import { getSavedQuestion } from "@/lib/actions/collection.action";
+
+export const metadata: Metadata = {
+  title: "Saved Questions",
+  description: "Review and manage questions you bookmarked on DevFlow.",
+};
 
 interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>;
