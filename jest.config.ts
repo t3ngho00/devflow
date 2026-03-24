@@ -35,7 +35,7 @@ const config: Config = {
       moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/$1",
       },
-      setupFilesAfterEnv: ["<rootDir>/jest.server.setup.ts"],
+      setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
       transform: {
         "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
       },

@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 

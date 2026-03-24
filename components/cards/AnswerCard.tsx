@@ -11,7 +11,9 @@ import EditDeleteAction from "../user/EditDeleteAction";
 import UserAvatar from "../UserAvatar";
 import Votes from "../votes/Votes";
 
-interface Props extends Omit<Answer, "question"> {
+interface Props extends Omit<Answer, "question" | "upvotes" | "downvotes"> {
+  upvotes?: number;
+  downvotes?: number;
   question?: string;
   containerClasses?: string;
   showReadMore?: boolean;
@@ -23,8 +25,8 @@ const AnswerCard = ({
   author,
   content,
   createdAt,
-  upvotes,
-  downvotes,
+  upvotes = 0,
+  downvotes = 0,
   question,
   containerClasses,
   showReadMore = false,

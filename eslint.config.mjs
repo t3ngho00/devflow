@@ -18,7 +18,7 @@ const eslintConfig = [
       "node_modules/**/*",
       "dist/**/*",
       "out/**/*",
-      "next-env.d.ts", 
+      "next-env.d.ts",
     ],
   },
   ...compat.extends(
@@ -62,6 +62,7 @@ const eslintConfig = [
       ],
       "comma-dangle": "off",
     },
+    ignorePatterns: ["components/ui/**"],
   },
   {
     files: ["**/*.ts", "**/*.tsx"],
