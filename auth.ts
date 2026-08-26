@@ -11,8 +11,21 @@ import { SignInSchema } from "./lib/validation";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    GitHub,
-    Google,
+    GitHub({
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET,
+      issuer: "https://github.com/login/oauth",
+      authorization: {
+        url: "https://github.com/login/oauth/authorize",
+        params: { scope: "read:user user:email" },
+      },
+      token: "https://github.com/login/oauth/access_token",
+      userinfo: "https://api.github.com/user",
+    }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
     Credentials({
       async authorize(credentials) {
         const validatedFields = SignInSchema.safeParse(credentials);
