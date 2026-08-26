@@ -90,19 +90,50 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account?.type === "credentials") return true;
       if (!account || !user) return false;
 
+      const isValidUrl = (value?: string | null): value is string => {
+        if (!value) return false;
+
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      const provider = account.provider as "github" | "google";
+
+      const email =
+        user.email ??
+        (profile as { email?: string | null } | undefined)?.email ??
+        (provider === "github"
+          ? `${account.providerAccountId}@users.noreply.github.com`
+          : undefined);
+
+      if (!email) return false;
+
+      const rawUsername =
+        provider === "github"
+          ? ((profile as { login?: string | null } | undefined)?.login ??
+            user.name ??
+            `github-${account.providerAccountId}`)
+          : email.split("@")[0];
+
+      const username =
+        rawUsername.trim().length >= 3
+          ? rawUsername.trim()
+          : `user-${account.providerAccountId.slice(0, 6)}`;
+
       const userInfo = {
-        name: user.name!,
-        email: user.email!,
-        image: user.image!,
-        username:
-          account.provider === "github"
-            ? (profile?.login as string)
-            : user.email!.split("@")[0],
+        name: user.name?.trim() || username,
+        email,
+        image: isValidUrl(user.image) ? user.image : undefined,
+        username,
       };
 
       const { success } = (await api.auth.oAuthSignIn({
         user: userInfo,
-        provider: account.provider as "github" | "google",
+        provider,
         providerAccountId: account.providerAccountId,
       })) as ActionResponse;
 
